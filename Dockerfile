@@ -1,7 +1,7 @@
 FROM node:11.4.0
 
-WORKDIR /app
+RUN git clone https://github.com/Hiro-Nakamura/ab_service_api_sails.git app && cd app && yarn install
 
-COPY ./app /app
+WORKDIR /app
 
 CMD ["node", "--inspect", "app.js"]
