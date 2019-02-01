@@ -15,7 +15,7 @@ module.exports = {
   query: async function(req, res) {
     console.log("request send:");
 
-    res.json({ hello: "world", v:"2" });
+    res.json({ hello: "world", v: "2" });
     return;
 
     // client.send({ type: 'query' }, results => {
