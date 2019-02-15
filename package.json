@@ -29,7 +29,7 @@
     "test": "npm run lint && npm run custom-tests && echo 'Done.'",
     "lint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
     "custom-tests": "echo \"(No other custom tests yet.)\" && echo",
-    "devInstall": "docker run -it -p 1337:1337 --mount type=bind,source=\"$(pwd)\",target=/app node bash",
+    "devInstall": "docker run -it -p 1337:1337 --mount type=bind,source=\"$(pwd)\",target=/app -w /app node bash",
   },
   "main": "app.js",
   "repository": {
