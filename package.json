@@ -21,7 +21,8 @@
     "babel-eslint": "^10.0.1",
     "eslint-config-prettier": "3.3.0",
     "eslint-plugin-prettier": "3.0.1",
-    "prettier": "1.15.3"
+    "prettier": "1.15.3",
+    "run-script-os": "^1.0.5"
   },
   "scripts": {
     "start": "NODE_ENV=production node app.js",
@@ -29,10 +30,12 @@
     "test": "npm run lint && npm run custom-tests && echo 'Done.'",
     "lint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
     "custom-tests": "echo \"(No other custom tests yet.)\" && echo",
-    "devBuild": "docker run -it --mount type=bind,source=\"$(pwd)\",target=/app -w /app node yarn",
-    "devWinBuild": "docker run -it --mount type=bind,source=%cd%,target=/app -w /app node yarn",
-    "devInstall": "docker run -it -p 1337:1337 --mount type=bind,source=\"$(pwd)\",target=/app -w /app node bash",
-    "devWinInstall": "docker run -it -p 1337:1337 --mount type=bind,source=%cd%,target=/app -w /app node bash"
+    "devBuild": "run-script-os",
+    "devInstall": "run-script-os",
+    "devBuild:darwin:linux": "docker run -it --mount type=bind,source=\"$(pwd)\",target=/app -w /app node yarn",
+    "devInstall:darwin:linux": "docker run -it -p 1337:1337 --mount type=bind,source=\"$(pwd)\",target=/app -w /app node bash",
+    "devBuild:win32": "docker run -it --mount type=bind,source=%cd%,target=/app -w /app node yarn",
+    "devInstall:win32": "docker run -it -p 1337:1337 --mount type=bind,source=%cd%,target=/app -w /app node bash"
   },
   "main": "app.js",
   "repository": {
