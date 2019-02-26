@@ -26,15 +26,15 @@
   },
   "scripts": {
     "start": "NODE_ENV=production node app.js",
-    "dev": "node_modules/.bin/nodemon --inspect=0.0.0.0:9229 app.js",
     "test": "npm run lint && npm run custom-tests && echo 'Done.'",
     "lint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
+    "dev": "node_modules/.bin/nodemon --inspect-brk=0.0.0.0:9229 app.js",
     "custom-tests": "echo \"(No other custom tests yet.)\" && echo",
     "devBuild": "run-script-os",
     "devInstall": "run-script-os",
-    "devBuild:darwin:linux": "docker run -it --mount type=bind,source=\"$(pwd)\",target=/app -w /app node yarn",
+    "devBuild:darwin:linux": "rm node_modules/.yarn-integrity && docker run -it --mount type=bind,source=\"$(pwd)\",target=/app -w /app node yarn",
     "devInstall:darwin:linux": "docker run -it -p 1337:1337 --mount type=bind,source=\"$(pwd)\",target=/app -w /app node bash",
-    "devBuild:win32": "docker run -it --mount type=bind,source=%cd%,target=/app -w /app node yarn",
+    "devBuild:win32": "del node_modules\\.yarn-integrity&& docker run -it --mount type=bind,source=%cd%,target=/app -w /app node yarn",
     "devInstall:win32": "docker run -it -p 1337:1337 --mount type=bind,source=%cd%,target=/app -w /app node bash"
   },
   "main": "app.js",
