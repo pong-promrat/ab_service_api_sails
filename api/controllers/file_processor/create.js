@@ -13,13 +13,14 @@
  *            to access this file
  *      isWebix : {bool} should I format the response for a Webix Uploader?
  */
+const async = require("async");
 const cote = require("cote");
 const client = new cote.Requester({
   name: "api_sails->file_processor->create"
 });
+const path = require("path");
 const shell = require("shelljs");
 const shortid = require("shortid");
-
 // setup our base path:
 var pathFiles =
   sails.config.file_processor.basePath ||
@@ -50,8 +51,8 @@ module.exports = function(req, res) {
         req.file("file").upload(
           {
             // store the files in our TEMP path
-            dirname: tempPath,
-            maxBytes: sails.config.opsportal.opimageupload.maxBytes || 10000000
+            dirname: path.join(pathFiles, "tmp"),
+            maxBytes: sails.config.file_processor.maxBytes || 10000000
           },
           function(err, list) {
             if (err) {
