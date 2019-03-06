@@ -16,7 +16,7 @@
 const async = require("async");
 const cote = require("cote");
 const client = new cote.Requester({
-  name: "api_sails->file_processor->create"
+  name: "api_sails > file_processor > create"
 });
 const path = require("path");
 const shell = require("shelljs");
@@ -28,6 +28,12 @@ var pathFiles =
 
 // create that path if it doesn't already exist:
 shell.mkdir("-p", pathFiles);
+
+// the possible parameters for this API call:
+var params = ["appKey", "permission", "isWebix"];
+
+// these parameters are required
+var requiredParams = ["appKey", "permission"];
 
 // make sure our BasePath is created:
 module.exports = function(req, res) {
@@ -42,6 +48,9 @@ module.exports = function(req, res) {
     jobID: jobID
   };
 
+  // params
+  var options = {};
+
   var serviceResponse;
 
   async.series(
@@ -51,7 +60,10 @@ module.exports = function(req, res) {
         req.file("file").upload(
           {
             // store the files in our TEMP path
-            dirname: path.join(pathFiles, "tmp"),
+            dirname: path.join(
+              pathFiles,
+              sails.config.file_processor.uploadPath || "tmp"
+            ),
             maxBytes: sails.config.file_processor.maxBytes || 10000000
           },
           function(err, list) {
@@ -75,8 +87,43 @@ module.exports = function(req, res) {
         );
       },
 
-      // 2) pass the job to the client
+      // 2) read in the parameters
       next => {
+        params.forEach(function(p) {
+          options[p] = req.param(p) || "??";
+        });
+
+        var missingParams = [];
+        requiredParams.forEach(function(r) {
+          if (options[r] == "??") {
+            missingParams.push(r);
+          }
+        });
+
+        if (missingParams.length > 0) {
+          console.log("... missingParams:", missingParams);
+          // var error = ADCore.error.fromKey('E_MISSINGPARAM');
+          var error = new Error("Missing Parameter");
+          error.key = "E_MISSINGPARAM";
+          error.missingParams = missingParams;
+          error.code = 422;
+          next(error);
+          return;
+        }
+
+        next();
+      },
+
+      // 3) pass the job to the client
+      next => {
+        jobData.name = fileEntry.fd.split(path.sep).pop();
+        jobData.appKey = options.appKey;
+        jobData.permission = options.permission;
+        jobData.size = fileEntry.size;
+        jobData.type = fileEntry.type;
+        jobData.user = "??"; // TODO: after we have user info
+        jobData.tenant = "??"; // TODO: after we have Tenant Info
+
         // pass the request off to the uService:
         client.send({ type: "file.upload", param: jobData }, (err, results) => {
           serviceResponse = results;
@@ -87,7 +134,23 @@ module.exports = function(req, res) {
       // 3) package response to the client
       next => {
         sails.log(serviceResponse);
-        res.json(serviceResponse);
+
+        // TODO: verify serviceResponse has uuid
+
+        var data = {
+          uuid: serviceResponse.uuid
+        };
+
+        // if this was a Webix uploader:
+        if (
+          options.isWebix != "??" &&
+          options.isWebix != "false" &&
+          options.isWebix != false
+        ) {
+          data.status = "server";
+        }
+
+        res.json(data);
         next();
       }
     ],
