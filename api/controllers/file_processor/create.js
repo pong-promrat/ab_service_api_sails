@@ -121,8 +121,13 @@ module.exports = function(req, res) {
         jobData.permission = options.permission;
         jobData.size = fileEntry.size;
         jobData.type = fileEntry.type;
-        jobData.user = "??"; // TODO: after we have user info
-        jobData.tenant = "??"; // TODO: after we have Tenant Info
+        jobData.fileName = fileEntry.filename;
+
+        // TODO: for now, reuse the user.id values so we can test with
+        // existing system DB values.  When we switch to multi tenant
+        // then use the user.uuid
+        jobData.userUUID = 1; //"??"; // TODO: after we have user info (user.uuid)
+        jobData.tenant = "?? "; // TODO: after we have Tenant Info
 
         // pass the request off to the uService:
         client.send({ type: "file.upload", param: jobData }, (err, results) => {
@@ -163,3 +168,8 @@ module.exports = function(req, res) {
     }
   );
 };
+
+// TODO: testing:
+// file larger than config setting, then there should be an error message "EFILETOOLARGE"
+
+// SQL Injection on fields: tenant, appKey, permission
