@@ -22,7 +22,11 @@ module.exports.routes = {
   "get /query": "QueryController.query",
 
   // AB Model Routes:
-  "get /model/find": "model/find"
+  "get /model/find": "model/find",
+
+  // file_processor routes:
+  "get  /file/:appKey/:uuid": "file_processor/read",
+  "post /file/:appKey/:permission/:isWebix": "file_processor/create",
 
   /***************************************************************************
    *                                                                          *
