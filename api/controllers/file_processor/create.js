@@ -127,7 +127,7 @@ module.exports = function(req, res) {
         // existing system DB values.  When we switch to multi tenant
         // then use the user.uuid
         jobData.userUUID = 1; //"??"; // TODO: after we have user info (user.uuid)
-        jobData.tenant = "?? "; // TODO: after we have Tenant Info
+        jobData.tenant = "__"; // TODO: after we have Tenant Info
 
         // pass the request off to the uService:
         client.send({ type: "file.upload", param: jobData }, (err, results) => {
