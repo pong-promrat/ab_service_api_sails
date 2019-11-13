@@ -51,6 +51,9 @@ module.exports = function(req, res) {
     // params
     var options = {};
 
+    var fileEntry;
+    // var fileRef;
+
     var serviceResponse;
 
     async.series(
@@ -76,14 +79,14 @@ module.exports = function(req, res) {
                             console.log("... fileEntry:", fileEntry);
 
                             if (fileEntry) {
-                                fileRef = fileEntry.fd; // full path to file
+                                // fileRef = fileEntry.fd; // full path to file
                                 next();
                             } else {
-                                var err = new Error(
+                                var err2 = new Error(
                                     "No file uploaded for parameter [file]"
                                 );
-                                err.code = 422;
-                                next(err);
+                                err2.code = 422;
+                                next(err2);
                             }
                         }
                     }
