@@ -8,24 +8,26 @@
     "@sailshq/connect-redis": "^3.2.1",
     "@sailshq/lodash": "^3.10.3",
     "@sailshq/socket.io-redis": "^5.2.0",
+    "ab-cli": "Hiro-Nakamura/ab-cli",
+    "async": "^3.1.0",
     "cote": "^0.18.0",
     "grunt": "1.0.1",
-    "nodemon": "^1.18.10",
-    "sails": "^1.1.0",
-    "sails-hook-grunt": "^3.1.0",
+    "nodemon": "^1.19.4",
+    "sails": "^1.2.3",
+    "sails-hook-grunt": "^3.1.1",
     "sails-hook-orm": "^2.1.1",
     "sails-hook-sockets": "^1.5.5",
     "sails-mysql": "^1.0.1",
     "shelljs": "^0.8.3",
-    "shortid": "^2.2.14"
+    "shortid": "^2.2.15"
   },
   "devDependencies": {
     "@sailshq/eslint": "^4.19.3",
-    "babel-eslint": "^10.0.1",
+    "babel-eslint": "^10.0.3",
     "eslint-config-prettier": "3.3.0",
     "eslint-plugin-prettier": "3.0.1",
     "prettier": "1.15.3",
-    "run-script-os": "^1.0.5"
+    "run-script-os": "^1.0.7"
   },
   "scripts": {
     "start": "NODE_ENV=production node app.js",
@@ -35,7 +37,7 @@
     "custom-tests": "echo \"(No other custom tests yet.)\" && echo",
     "devBuild": "run-script-os",
     "devInstall": "run-script-os",
-    "devBuild:darwin:linux": "rm node_modules/.yarn-integrity && docker run -it --mount type=bind,source=\"$(pwd)\",target=/app -w /app node yarn",
+    "devBuild:darwin:linux": "rm node_modules/.yarn-integrity && docker run -it --mount type=bind,source=\"$(pwd)\",target=/app -w /app node npm update",
     "devInstall:darwin:linux": "docker run -it -p 1337:1337 --mount type=bind,source=\"$(pwd)\",target=/app -w /app node bash",
     "devBuild:win32": "del node_modules\\.yarn-integrity&& docker run -it --mount type=bind,source=%cd%,target=/app -w /app node yarn",
     "devInstall:win32": "docker run -it -p 1337:1337 --mount type=bind,source=%cd%,target=/app -w /app node bash"
