@@ -20,7 +20,6 @@ const client = new cote.Requester({
 });
 const path = require("path");
 const shell = require("shelljs");
-const shortid = require("shortid");
 // setup our base path:
 var pathFiles =
     sails.config.file_processor.basePath ||
@@ -39,14 +38,7 @@ var requiredParams = ["appKey", "permission"];
 module.exports = function(req, res) {
     // Package the Find Request and pass it off to the service
 
-    var jobID = shortid.generate();
-
-    sails.log(`file_processor::create::${jobID}`);
-
-    // create a new job for the file_processor
-    let jobData = {
-        jobID: jobID
-    };
+    req.ab.log(`file_processor::create`);
 
     // params
     var options = {};
@@ -122,27 +114,22 @@ module.exports = function(req, res) {
 
             // 3) pass the job to the client
             (next) => {
-                jobData.name = fileEntry.fd.split(path.sep).pop();
-                jobData.appKey = options.appKey;
-                jobData.permission = options.permission;
-                jobData.size = fileEntry.size;
-                jobData.type = fileEntry.type;
-                jobData.fileName = fileEntry.filename;
-
-                // TODO: for now, reuse the user.id values so we can test with
-                // existing system DB values.  When we switch to multi tenant
-                // then use the user.uuid
-                jobData.userUUID = 1; //"??"; // TODO: after we have user info (user.uuid)
-                jobData.tenant = "__"; // TODO: after we have Tenant Info
+                var jobData = {
+                    name: fileEntry.fd.split(path.sep).pop(),
+                    appKey: options.appKey,
+                    permission: options.permission,
+                    size: fileEntry.size,
+                    type: fileEntry.type,
+                    fileName: fileEntry.filename
+                };
 
                 // pass the request off to the uService:
-                client.send(
-                    { type: "file.upload", param: jobData },
-                    (err, results) => {
-                        serviceResponse = results;
-                        next(err);
-                    }
-                );
+                var coteParam = req.ab.toParam("file.upload", jobData);
+
+                client.send(coteParam, (err, results) => {
+                    serviceResponse = results;
+                    next(err);
+                });
             },
 
             // 3) package response to the client

@@ -6,12 +6,12 @@
  */
 
 const cote = require("cote");
-const client = new cote.Requester({ name: "ModelFindRequestor" });
+const client = new cote.Requester({ name: "api_sails > model > find" });
 
 module.exports = function(req, res) {
     // Package the Find Request and pass it off to the service
 
-    sails.log("Model.Find()");
+    req.ab.log("model::find");
 
     // gather .find() parameters here
     let findData = {
@@ -23,9 +23,13 @@ module.exports = function(req, res) {
         limit: 20
     };
 
+    var coteParam = req.ab.toParam("model.find", findData);
+
+    console.log(coteParam);
+
     // pass the request off to the uService:
-    client.send({ type: "model.find", param: findData }, (results) => {
-        sails.log(results);
+    client.send(coteParam, (err, results) => {
+        req.ab.log(results);
         res.json(results);
     });
 };

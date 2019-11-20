@@ -8,23 +8,25 @@
  * https://sailsjs.com/docs/concepts/policies
  */
 
+var defaultStack = ["abUtils"];
+
 module.exports.policies = {
-  /***************************************************************************
-   *                                                                          *
-   * Default policy for all controllers and actions, unless overridden.       *
-   * (`true` allows public access)                                            *
-   *                                                                          *
-   ***************************************************************************/
+    /***************************************************************************
+     *                                                                          *
+     * Default policy for all controllers and actions, unless overridden.       *
+     * (`true` allows public access)                                            *
+     *                                                                          *
+     ***************************************************************************/
 
-  // '*': true,
+    // '*': true,
 
-  QueryController: {
-    query: true
-  },
+    QueryController: {
+        query: defaultStack
+    },
 
-  //
-  // api/controllers/model/  actions:
-  //
-  "model/*": true // all actions in model/**/**
-  // 'model/find': [ policy1 ]
+    //
+    // api/controllers/model/  actions:
+    //
+    "model/*": defaultStack // all actions in model/**/**
+    // 'model/find': [ policy1 ]
 };
