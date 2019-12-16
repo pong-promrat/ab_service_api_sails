@@ -68,7 +68,7 @@ module.exports = function(req, res) {
                             next(err);
                         } else {
                             fileEntry = list[0]; // info about file
-                            console.log("... fileEntry:", fileEntry);
+                            req.ab.log("... fileEntry:", fileEntry);
 
                             if (fileEntry) {
                                 // fileRef = fileEntry.fd; // full path to file
@@ -99,7 +99,7 @@ module.exports = function(req, res) {
                 });
 
                 if (missingParams.length > 0) {
-                    console.log("... missingParams:", missingParams);
+                    req.ab.log("... missingParams:", missingParams);
                     // var error = ADCore.error.fromKey('E_MISSINGPARAM');
                     var error = new Error("Missing Parameter");
                     error.key = "E_MISSINGPARAM";

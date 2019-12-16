@@ -24,9 +24,10 @@
   "devDependencies": {
     "@sailshq/eslint": "^4.19.3",
     "babel-eslint": "^10.0.3",
-    "eslint-config-prettier": "3.3.0",
-    "eslint-plugin-prettier": "3.0.1",
-    "prettier": "1.15.3",
+    "eslint": "^6.7.2",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^1.19.1",
     "run-script-os": "^1.0.7"
   },
   "scripts": {
