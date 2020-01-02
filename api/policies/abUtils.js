@@ -7,6 +7,6 @@
 var AB = require("ab-utils");
 
 module.exports = (req, res, next) => {
-    req.ab = AB.reqAB();
-    next();
+   req.ab = AB.reqAB();
+   next();
 };

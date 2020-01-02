@@ -9,18 +9,18 @@
 // const client = new cote.Requester({ name: "QueryController" });
 
 module.exports = {
-    /**
-     * `QueryControllerController.query()`
-     */
-    query: async function(req, res) {
-        console.log("request send:");
+   /**
+    * `QueryControllerController.query()`
+    */
+   query: async function(req, res) {
+      console.log("request send:");
 
-        res.json({ hello: "world", v: "3" });
-        return;
+      res.json({ hello: "world", v: "3" });
+      return;
 
-        // client.send({ type: 'query' }, results => {
-        //   console.log(results);
-        //   res.json(results);
-        // });
-    }
+      // client.send({ type: 'query' }, results => {
+      //   console.log(results);
+      //   res.json(results);
+      // });
+   }
 };
