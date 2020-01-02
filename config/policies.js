@@ -8,7 +8,7 @@
  * https://sailsjs.com/docs/concepts/policies
  */
 
-var defaultStack = ["abUtils"];
+var defaultStack = ["abUtils", "authTenant"];
 
 module.exports.policies = {
     /***************************************************************************
@@ -18,11 +18,11 @@ module.exports.policies = {
      *                                                                          *
      ***************************************************************************/
 
-    // '*': true,
+    "*": defaultStack,
 
-    QueryController: {
-        query: defaultStack
-    },
+    // QueryController: {
+    //     query: defaultStack
+    // },
 
     //
     // api/controllers/model/  actions:

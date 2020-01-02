@@ -11,13 +11,14 @@
 module.exports.routes = {
     /***************************************************************************
      *                                                                          *
-     * Make the view located at `views/homepage.ejs` your home page.            *
+     * SiteController                                                           *
      *                                                                          *
-     * (Alternatively, remove this and add an `index.html` file in your         *
-     * `assets` directory)                                                      *
+     * These routes are responsible for loading an initial HTML container to    *
+     * load the AppBuilder.                                                     *
      *                                                                          *
      ***************************************************************************/
-    "/": { view: "pages/homepage" },
+    "/": "SiteController.index",
+    "/favicon.ico": "SiteController.favicon",
 
     "get /query": "QueryController.query",
 
@@ -25,7 +26,6 @@ module.exports.routes = {
     "get /model/find": "model/find",
 
     // file_processor routes:
-    "get /file_processor/read": "file_processor/read",
     "get  /file/:appKey/:uuid": "file_processor/read",
     "post /file/:appKey/:permission/:isWebix": "file_processor/create"
 
