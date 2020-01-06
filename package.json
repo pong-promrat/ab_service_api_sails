@@ -9,6 +9,7 @@
     "@sailshq/lodash": "^3.10.3",
     "@sailshq/socket.io-redis": "^5.2.0",
     "ab-cli": "Hiro-Nakamura/ab-cli",
+    "ab-utils": "github:Hiro-Nakamura/ab-utils",
     "async": "^3.1.0",
     "cote": "^0.18.0",
     "grunt": "1.0.1",

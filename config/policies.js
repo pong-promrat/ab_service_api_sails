@@ -11,22 +11,22 @@
 var defaultStack = ["abUtils", "authTenant"];
 
 module.exports.policies = {
-    /***************************************************************************
-     *                                                                          *
-     * Default policy for all controllers and actions, unless overridden.       *
-     * (`true` allows public access)                                            *
-     *                                                                          *
-     ***************************************************************************/
+   /***************************************************************************
+    *                                                                          *
+    * Default policy for all controllers and actions, unless overridden.       *
+    * (`true` allows public access)                                            *
+    *                                                                          *
+    ***************************************************************************/
 
-    "*": defaultStack,
+   "*": defaultStack,
 
-    // QueryController: {
-    //     query: defaultStack
-    // },
+   // QueryController: {
+   //     query: defaultStack
+   // },
 
-    //
-    // api/controllers/model/  actions:
-    //
-    "model/*": defaultStack // all actions in model/**/**
-    // 'model/find': [ policy1 ]
+   //
+   // api/controllers/model/  actions:
+   //
+   "model/*": defaultStack // all actions in model/**/**
+   // 'model/find': [ policy1 ]
 };

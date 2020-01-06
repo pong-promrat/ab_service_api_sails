@@ -12,11 +12,10 @@ module.exports = {
     * return a default HTML container to load the AppBuilder in.
     */
    index: async function(req, res) {
-      //// Left off here:
-      req.ab.log("req.ab", req.ab);
+      // req.ab.log("req.ab", req.ab);
       res.view(
          // path to template: "views/site/index.ejs",
-         { title: "site", v: "3" }
+         { title: "site", v: "2" }
       );
       return;
    },
@@ -27,5 +26,23 @@ module.exports = {
     */
    favicon: function(req, res) {
       res.redirect("/assets/tenant/adroit/favicon.ico");
+   },
+
+   /*
+    * get /config
+    * return the config data for the current request
+    */
+   config: function(req, res) {
+      res.send({
+         status: "success",
+         data: {
+            tenant: {
+               id: req.ab.tenantID,
+               options: {
+                  textClickToEnter: "Click to Enter the AppBuilder"
+               }
+            }
+         }
+      });
    }
 };
