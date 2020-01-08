@@ -5,9 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-// const cote = require("cote");
-// const client = new cote.Requester({ name: "QueryController" });
-
 module.exports = {
    /**
     * `QueryControllerController.query()`

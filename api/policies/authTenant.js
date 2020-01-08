@@ -2,10 +2,6 @@
  * authTenant
  * attempt to resolve which tenant this route is trying to work with.
  */
-const cote = require("cote");
-const client = new cote.Requester({
-   name: "api_sails > authTenant"
-});
 
 var hashLookup = {
    /* urlPrefix : "tenantID", */
@@ -19,27 +15,34 @@ function isNumeric(n) {
 const URL = require("url");
 
 module.exports = (req, res, next) => {
-   req.ab.log("... authTenant");
-
    // there are several ways a Tenant can be specified:
+   // console.log();
+   console.log("--------------------");
+   console.log("authTenant: headers:", req.headers);
+   // console.log("authTenant: cookie:", req.cookie);
 
-   // - cookie: tenant_id:'aedasl;dkfjasdlkfj'
-   if (req.cookie && req.cookie.tenant_id) {
-      req.ab.log("   -> cookie");
-      req.ab.tenantID = req.cookie.tenant_id;
+   // - session: tenant_id:'aedasl;dkfjasdlkfj'
+   if (req.session && req.session.tenant_id) {
+      req.ab.log("authTenant -> session");
+      req.ab.tenantID = req.session.tenant_id;
       next();
       return;
    }
 
    // - header: tenant_token: 'adslkfaldkfjaslk;jf'
-   if (req.header && req.header.tenant_token) {
-      req.ab.log("   -> token");
-      req.ab.tenantID = req.header.tenant_token;
+   if (req.headers && req.headers["tenant-token"]) {
+      req.ab.log("authTenant -> token");
+      req.ab.tenantID = req.headers["tenant-token"];
+      // Q: if they are using the tenant-token header, should we store that
+      //    in session? or just let them continue with the header?
+      // req.session.tenant_id = req.ab.tenantID;
       next();
       return;
    }
 
    // - url: prefix :  http://fcf.baseurl.org
+   //   once we resolve the url prefix, we will store the tenant id in the
+   //   session.
    var urlHostname = req.hostname;
 
    // if we are proxied by NGINX:
@@ -55,39 +58,51 @@ module.exports = (req, res, next) => {
    if (incomingURL.hostname) {
       var parts = incomingURL.hostname.split(".");
       var prefix = parts.shift();
+
+      //// DEV TESTING:
+      //// uncomment the initConfig.js && index.ejs entries for these values
+      //// to test url prefix route resolutions:
+      // if (req.headers && req.headers["tenant-test-prefix"]) {
+      //    prefix = req.headers["tenant-test-prefix"];
+      // }
+      //// DEV TESTING
+
       if (hashLookup[prefix]) {
-         req.ab.log("   -> url:hashed");
+         req.ab.log(`authTenant -> url:hashed (${prefix})`);
          req.ab.tenantID = hashLookup[prefix];
-         // be sure to set the cookie:
-         res.cookie("tenant_id", req.ab.tenantID);
+         // be sure to set the session:
+         req.session.tenant_id = req.ab.tenantID;
          next();
          return;
       }
 
       // should we try to perform a lookup by the prefix?
       if (prefix != "localhost" && !isNumeric(prefix)) {
-         req.ab.log(`   -> tenant_manager.find(${prefix})`);
+         req.ab.log(`authTenant -> tenant_manager.find(${prefix})`);
 
          var jobData = {
             key: prefix
          };
 
-         var coteParam = req.ab.toParam("tenant_manager.find", jobData);
-         client.send(coteParam, (err, results) => {
-            if (err) {
-               next(err);
-               return;
-            }
-            if (results.uuid) {
-               req.ab.log("   -> url:hashed");
-               hashLookup[prefix] = results.uuid;
-               req.ab.tenantID = results.uuid;
-               // be sure to set the cookie:
-               res.cookie("tenant_id", req.ab.tenantID);
-            }
+         req.ab.serviceRequest(
+            "tenant_manager.find",
+            jobData,
+            (err, results) => {
+               if (err) {
+                  next(err);
+                  return;
+               }
+               if (results && results.uuid) {
+                  req.ab.log("   -> url:hashed");
+                  hashLookup[prefix] = results.uuid;
+                  req.ab.tenantID = results.uuid;
+                  // be sure to set the session:
+                  req.session.tenant_id = req.ab.tenantID;
+               }
 
-            next();
-         });
+               next();
+            }
+         );
       } else {
          // no Tenant ID known for this request
          // just keep going:

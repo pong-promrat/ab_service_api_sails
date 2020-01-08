@@ -14,10 +14,6 @@
  *      isWebix : {bool} should I format the response for a Webix Uploader?
  */
 const async = require("async");
-const cote = require("cote");
-const client = new cote.Requester({
-   name: "api_sails > file_processor > create"
-});
 const path = require("path");
 const shell = require("shelljs");
 // setup our base path:
@@ -123,9 +119,7 @@ module.exports = function(req, res) {
             };
 
             // pass the request off to the uService:
-            var coteParam = req.ab.toParam("file.upload", jobData);
-
-            client.send(coteParam, (err, results) => {
+            req.ab.serviceRequest("file.upload", jobData, (err, results) => {
                serviceResponse = results;
                next(err);
             });
