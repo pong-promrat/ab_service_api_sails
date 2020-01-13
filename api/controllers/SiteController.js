@@ -75,6 +75,70 @@ module.exports = {
                      done(err);
                   }
                );
+            },
+
+            (done) => {
+               // if a user isn't set, then just leave user:null
+               if (!req.ab.user) {
+                  done();
+                  return;
+               }
+
+               var jobData = {
+                  uuid: req.ab.user.uuid
+               };
+
+               // pass the request off to the uService:
+               req.ab.serviceRequest(
+                  "user_manager.config",
+                  jobData,
+                  (err, results) => {
+                     configUser = results;
+                     done(err);
+                  }
+               );
+            },
+
+            (done) => {
+               var jobData = {};
+
+               // pass the request off to the uService:
+               req.ab.serviceRequest(
+                  "tenant_manager.config.list",
+                  {},
+                  (err, results) => {
+                     if (results) {
+                        configSite = {
+                           tenants: results
+                        };
+                     }
+                     done(err);
+                  }
+               );
+            },
+
+            (done) => {
+               // if a user isn't set, then just leave user:null
+               if (!req.ab.user) {
+                  done();
+                  return;
+               }
+
+               req.ab.log("TODO: implement appbuilder.definitions");
+
+               var jobData = {
+                  roles: req.ab.user.roles
+               };
+
+               // pass the request off to the uService:
+               req.ab.serviceRequest(
+                  "appbuilder.definitions",
+                  jobData,
+                  (err, results) => {
+                     configDefinitions = results;
+                     done(err);
+                  }
+               );
             }
          ],
          (err) => {
@@ -109,7 +173,7 @@ module.exports = {
    },
 
    /*
-    * get /logout
+    * post /logout
     * remove the current user's authentication
     */
    logout: function(req, res) {
@@ -117,5 +181,11 @@ module.exports = {
       req.session.user_id = null;
 
       res.ab.success({});
-   }
+   },
+
+   /*
+    * post /login
+    * perform a user authentication credentials check
+    */
+   login: function(req, res) {}
 };
