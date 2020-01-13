@@ -127,7 +127,7 @@ module.exports = function(req, res) {
 
          // 3) package response to the client
          (next) => {
-            sails.log(serviceResponse);
+            // req.ab.log(serviceResponse);
 
             // TODO: verify serviceResponse has uuid
 
@@ -144,15 +144,15 @@ module.exports = function(req, res) {
                data.status = "server";
             }
 
-            res.json(data);
+            res.ab.success(data);
             next();
          }
       ],
       (err, results) => {
          // handle error reporting back to the client
          if (err) {
-            sails.log(results);
-            res.json(results);
+            req.ab.log("api_sails:file_processor:create: error", err);
+            res.ab.error(err);
          }
       }
    );
