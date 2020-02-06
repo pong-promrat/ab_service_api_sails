@@ -85,7 +85,7 @@ module.exports = {
                }
 
                var jobData = {
-                  uuid: req.ab.user.uuid
+                  user: req.ab.user
                };
 
                // pass the request off to the uService:
@@ -115,30 +115,6 @@ module.exports = {
                      done(err);
                   }
                );
-            },
-
-            (done) => {
-               // if a user isn't set, then just leave user:null
-               if (!req.ab.user) {
-                  done();
-                  return;
-               }
-
-               req.ab.log("TODO: implement appbuilder.definitions");
-
-               var jobData = {
-                  roles: req.ab.user.roles
-               };
-
-               // pass the request off to the uService:
-               req.ab.serviceRequest(
-                  "appbuilder.definitions",
-                  jobData,
-                  (err, results) => {
-                     configDefinitions = results;
-                     done(err);
-                  }
-               );
             }
          ],
          (err) => {
@@ -147,12 +123,47 @@ module.exports = {
                res.ab.error(err, 500);
                return;
             }
-            res.ab.success({
-               tenant: configTenant,
-               user: configUser,
-               site: configSite,
-               definitions: configDefinitions
-            });
+
+            Promise.resolve()
+               .then(() => {
+                  // if a user isn't set, then just leave user:null
+                  if (!req.ab.user) {
+                     return;
+                  }
+
+                  return new Promise((resolve /* , reject */) => {
+                     req.ab.log("TODO: implement appbuilder.definitions");
+                     req.ab.log("configUser:", configUser);
+
+                     /*
+                     var jobData = {
+                        roles: configUser.roles
+                     };
+
+                     // pass the request off to the uService:
+                     req.ab.serviceRequest(
+                        "appbuilder.definitions",
+                        jobData,
+                        (err, results) => {
+                           if (err) {
+                              req.ab.log("error:", err);
+                           }
+                           configDefinitions = results;
+                           resolve();
+                        }
+                     );
+*/
+                     resolve();
+                  });
+               })
+               .then(() => {
+                  res.ab.success({
+                     tenant: configTenant,
+                     user: configUser,
+                     site: configSite,
+                     definitions: configDefinitions
+                  });
+               });
          }
       );
 
@@ -173,19 +184,47 @@ module.exports = {
    },
 
    /*
-    * post /logout
+    * post /auth/logout
     * remove the current user's authentication
     */
-   logout: function(req, res) {
+   authlogout: function(req, res) {
       req.session.tenant_id = null;
       req.session.user_id = null;
 
       res.ab.success({});
-   },
+   }
 
    /*
-    * post /login
+    * post /auth/login
     * perform a user authentication credentials check
     */
-   login: function(req, res) {}
+   // authLogin: function(req, res) {
+   //    req.ab.log("authLogin:");
+
+   //    var email = req.param("email");
+   //    var password = req.param("password");
+
+   //    if (!req.ab.tenantSet()) {
+   //       var tenant = req.param("tenant");
+   //       if (tenant) {
+   //          req.ab.tenantID = tenant;
+   //       }
+   //    }
+
+   //    req.ab.serviceRequest(
+   //       "user_manager.find.password",
+   //       { email, password },
+   //       (err, user) => {
+   //          if (err) {
+   //             req.ab.log("error logging in:", err);
+   //             res.ab.error(err, 401);
+   //             return;
+   //          }
+   //          req.ab.log("successful auth/login");
+   //          req.session.tenant_id = req.ab.tenantID;
+   //          req.session.user_id = user.uuid;
+   //          res.ab.success({ user });
+   //       }
+   //    );
+   // }
 };

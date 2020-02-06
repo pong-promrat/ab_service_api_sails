@@ -8,7 +8,7 @@
  * https://sailsjs.com/docs/concepts/policies
  */
 
-var defaultStack = ["abUtils", "authTenant"];
+var defaultStack = ["abUtils", "authTenant", "authUser"];
 
 module.exports.policies = {
    /***************************************************************************
