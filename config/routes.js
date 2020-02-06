@@ -20,6 +20,7 @@ module.exports.routes = {
    "/": "SiteController.index",
    "/favicon.ico": "SiteController.favicon",
    "get /config": "SiteController.config",
+   "post /auth/login": "auth/login",
 
    "get /query": "QueryController.query",
 

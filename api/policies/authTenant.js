@@ -17,8 +17,8 @@ const URL = require("url");
 module.exports = (req, res, next) => {
    // there are several ways a Tenant can be specified:
    // console.log();
-   console.log("--------------------");
-   console.log("authTenant: headers:", req.headers);
+   // console.log("--------------------");
+   // console.log("authTenant: headers:", req.headers);
    // console.log("authTenant: cookie:", req.cookie);
 
    // - session: tenant_id:'aedasl;dkfjasdlkfj'
