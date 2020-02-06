@@ -8,32 +8,50 @@
     "@sailshq/connect-redis": "^3.2.1",
     "@sailshq/lodash": "^3.10.3",
     "@sailshq/socket.io-redis": "^5.2.0",
+    "ab-cli": "Hiro-Nakamura/ab-cli",
+    "ab-utils": "github:Hiro-Nakamura/ab-utils",
+    "async": "^3.1.0",
     "cote": "^0.18.0",
     "grunt": "1.0.1",
-    "sails": "^1.1.0",
-    "sails-hook-grunt": "^3.1.0",
+    "nodemon": "^1.19.4",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
+    "sails": "^1.2.3",
+    "sails-hook-grunt": "^3.1.1",
     "sails-hook-orm": "^2.1.1",
-    "sails-hook-sockets": "^1.5.5"
+    "sails-hook-sockets": "^1.5.5",
+    "sails-mysql": "^1.0.1",
+    "shelljs": "^0.8.3",
+    "shortid": "^2.2.15"
   },
   "devDependencies": {
     "@sailshq/eslint": "^4.19.3",
-    "babel-eslint": "^10.0.1",
-    "eslint-config-prettier": "3.3.0",
-    "eslint-plugin-prettier": "3.0.1",
-    "prettier": "1.15.3"
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.7.2",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^1.19.1",
+    "run-script-os": "^1.0.7"
   },
   "scripts": {
     "start": "NODE_ENV=production node app.js",
     "test": "npm run lint && npm run custom-tests && echo 'Done.'",
     "lint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
-    "custom-tests": "echo \"(No other custom tests yet.)\" && echo"
+    "dev": "node_modules/.bin/nodemon --inspect=0.0.0.0:9229 app.js",
+    "custom-tests": "echo \"(No other custom tests yet.)\" && echo",
+    "devBuild": "run-script-os",
+    "devInstall": "run-script-os",
+    "devBuild:darwin:linux": "rm node_modules/.yarn-integrity && docker run -it --mount type=bind,source=\"$(pwd)\",target=/app -w /app node npm update",
+    "devInstall:darwin:linux": "docker run -it -p 1337:1337 --mount type=bind,source=\"$(pwd)\",target=/app -w /app node bash",
+    "devBuild:win32": "del node_modules\\.yarn-integrity&& docker run -it --mount type=bind,source=%cd%,target=/app -w /app node yarn",
+    "devInstall:win32": "docker run -it -p 1337:1337 --mount type=bind,source=%cd%,target=/app -w /app node bash"
   },
   "main": "app.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/dad/app.git"
   },
-  "author": "dad",
+  "author": "Johnny Hausman",
   "license": "",
   "engines": {
     "node": "^11.4"
