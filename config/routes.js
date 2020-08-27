@@ -28,8 +28,8 @@ module.exports.routes = {
    "get /model/find": "model/find",
 
    // file_processor routes:
-   "get  /file/:appKey/:uuid": "file_processor/read",
-   "post /file/:appKey/:permission/:isWebix": "file_processor/create"
+   // "get  /file/:appKey/:uuid": "file_processor/read",
+   "post /file/:appKey/:permission/:isWebix": "file_processor/create",
 
    /***************************************************************************
     *                                                                          *
