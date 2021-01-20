@@ -12,20 +12,44 @@ var hashTitles = {
 };
 
 module.exports = {
+   labelMissing: function (req, res) {
+      console.log("!!!! LabelMissing !!!!");
+      res.ab.success({ done: true });
+   },
    /**
     * get /
     * in cases where we are not embedded in another webpage, we can
     * return a default HTML container to load the AppBuilder in.
     */
-   index: async function(req, res) {
+   index: async function (req, res) {
       // req.ab.log("req.ab", req.ab);
       var title = "";
       if (hashTitles[req.ab.tenantID]) {
          title = hashTitles[req.ab.tenantID];
       }
+      var tenantID = "";
+      // {string} tenantID
+      // the default tenantID the loaded AB_Runtime should be working with
+
+      // if a tenant is set from our policies:
+      if (req.ab.tenantSet()) {
+         tenantID = `appbuilder-tenant="${req.ab.tenantID}"`;
+      }
+      // if a tenantID was set due to our route:  get /admin
+      // then include that here (override the policies)
+      if (req.options.useTenantID) {
+         tenantID = `appbuilder-tenant="${sails.config.tenant_manager.siteTenantID}"`;
+      }
+
+      // console.log();
+      // console.log("===============");
+      // console.log(sails);
+      // console.log("===============");
+      // console.log();
+
       res.view(
          // path to template: "views/site/index.ejs",
-         { title, v: "2", layout: false }
+         { title, v: "2", layout: false, tenantID }
       );
       return;
    },
@@ -34,37 +58,56 @@ module.exports = {
     * get /favicon.ico
     * determine which tenant's favicon.ico to return.
     */
-   favicon: function(req, res) {
+   favicon: function (req, res) {
       var url;
       if (req.ab.tenantSet()) {
          url = `/assets/tenant/${req.ab.tenantID}/favicon.ico`;
       } else {
          url = "/assets/tenant/default/favicon.ico";
       }
-      res.redirect();
+      console.log("/favicon.ico : resolving to :" + url);
+      res.redirect(url);
+   },
+
+   /*
+    * get /sails.io.js
+    * return our common sails.io library.
+    */
+   sailsio: function (req, res) {
+      var options = {
+         root: path.join(__dirname, "..", "..", "assets", "dependencies"),
+      };
+      res.sendFile("sails.io.js", options, (err) => {
+         if (err) {
+            console.error(err);
+         }
+      });
    },
 
    /*
     * get /config
     * return the config data for the current request
     */
-   config: function(req, res) {
+   config: function (req, res) {
       // we need to combine several config sources:
       // tenant: tenantManager.config (id:uuid)
       // user: userManager.config(id:uuid)
       // definitions: definitionManager.config(roles:user.roles);
+      // labels: appbuilder.labels("en")
 
       var configTenant = null;
       var configUser = null;
       var configSite = null;
       var configDefinitions = null;
+      var configLabels = null;
 
       async.parallel(
          [
             (done) => {
                var jobData = {
-                  uuid: req.ab.tenantID
+                  uuid: req.ab.tenantID,
                };
+               req.ab.log("/config jobData:", jobData);
 
                // pass the request off to the uService:
                req.ab.serviceRequest(
@@ -85,7 +128,7 @@ module.exports = {
                }
 
                var jobData = {
-                  user: req.ab.user
+                  user: req.ab.user,
                };
 
                // pass the request off to the uService:
@@ -109,13 +152,37 @@ module.exports = {
                   (err, results) => {
                      if (results) {
                         configSite = {
-                           tenants: results
+                           tenants: results,
                         };
                      }
                      done(err);
                   }
                );
-            }
+            },
+
+            (done) => {
+               // default to "en" labels
+               var langCode = "en";
+               if (req.ab.user) {
+                  langCode = req.ab.user.languageCode;
+               }
+
+               var jobData = {
+                  languageCode: langCode,
+               };
+               req.ab.log("label job data:", jobData);
+               req.ab.log("user:", req.ab.user);
+
+               // pass the request off to the uService:
+               req.ab.serviceRequest(
+                  "appbuilder.labels",
+                  jobData,
+                  (err, results) => {
+                     configLabels = results;
+                     done(err);
+                  }
+               );
+            },
          ],
          (err) => {
             if (err) {
@@ -135,25 +202,23 @@ module.exports = {
                      req.ab.log("TODO: implement appbuilder.definitions");
                      req.ab.log("configUser:", configUser);
 
-                     /*
                      var jobData = {
-                        roles: configUser.roles
+                        roles: configUser.roles,
                      };
 
                      // pass the request off to the uService:
                      req.ab.serviceRequest(
-                        "appbuilder.definitions",
+                        "appbuilder.definitionsForRoles",
                         jobData,
                         (err, results) => {
                            if (err) {
                               req.ab.log("error:", err);
+                              return;
                            }
                            configDefinitions = results;
                            resolve();
                         }
                      );
-*/
-                     resolve();
                   });
                })
                .then(() => {
@@ -161,8 +226,14 @@ module.exports = {
                      tenant: configTenant,
                      user: configUser,
                      site: configSite,
-                     definitions: configDefinitions
+                     definitions: configDefinitions,
+                     labels: configLabels,
                   });
+               })
+               .catch((err) => {
+                  // How did we get here?
+                  req.ab.log(err);
+                  res.ab.error(err);
                });
          }
       );
@@ -187,7 +258,7 @@ module.exports = {
     * post /auth/logout
     * remove the current user's authentication
     */
-   authlogout: function(req, res) {
+   authlogout: function (req, res) {
       req.session.tenant_id = null;
       req.session.user_id = null;
 

@@ -6,13 +6,17 @@
  *
  */
 
-module.exports = function(req, res) {
+module.exports = function (req, res) {
    req.ab.log("auth/login():");
 
    var email = req.param("email");
    var password = req.param("password");
 
-   if (!req.ab.tenantSet()) {
+   // NOTE: in the /config route, the tenant_manager.config() handler
+   // returns "default" if no tenant could be found for the request.
+   // this should only happen if we have enabled the ability to access
+   // a generic login that lets you choose which tenant to log into:
+   if (!req.ab.tenantSet() || req.ab.tenantID == "default") {
       var tenant = req.param("tenant");
       if (tenant) {
          req.ab.tenantID = tenant;

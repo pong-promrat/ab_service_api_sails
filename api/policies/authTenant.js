@@ -29,7 +29,7 @@ module.exports = (req, res, next) => {
       return;
    }
 
-   // - header: tenant_token: 'adslkfaldkfjaslk;jf'
+   // - header: tenant-token: 'adslkfaldkfjaslk;jf'
    if (req.headers && req.headers["tenant-token"]) {
       req.ab.log("authTenant -> token");
       req.ab.tenantID = req.headers["tenant-token"];
@@ -104,6 +104,7 @@ module.exports = (req, res, next) => {
             }
          );
       } else {
+         req.ab.log("authTenant -> no valid tenant options");
          // no Tenant ID known for this request
          // just keep going:
          next();

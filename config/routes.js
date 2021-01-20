@@ -18,8 +18,18 @@ module.exports.routes = {
     *                                                                          *
     ***************************************************************************/
    "/": "SiteController.index",
+   "get /admin": {
+      controller: "SiteController",
+      action: "index",
+      useTenantID: true,
+   },
+
+   // Static Resources for our Web Clients
    "/favicon.ico": "SiteController.favicon",
+   "get /sails.io.js": "SiteController.sailsio",
+
    "get /config": "SiteController.config",
+
    "post /auth/login": "auth/login",
 
    "get /query": "QueryController.query",
@@ -43,4 +53,9 @@ module.exports.routes = {
     ***************************************************************************/
    // tenant_manager routes:
    // "/tenant_manager/find": "tenant_manager/find",
+
+   // appbuilder routes:
+   "get /app_builder/model/:ID": "appbuilder/model-get",
+   "/multilingual/label-missing": "appbuilder/label-missing",
+
 };

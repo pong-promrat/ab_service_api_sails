@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <title><%= title %></title>
   <style>
-    // No styles here
-    </style>
+  </style>
+  <script type='text/javascript' src='sails.io.js' ></script> 
 </head>
 <body>
     <div> Some content that should be hidden ... </div>
-    <div appbuilder-portal="default" appbuilder-portal-autoenter="true" ></div>
+    <div appbuilder-portal="default" appbuilder-portal-autoenter="true" <%- tenantID %>  ></div>
     <!-- div><%- sails.config.environment %>  </div -->
-    <script type='text/javascript' src='assets/app.js'></script> 
+    <script type='text/javascript' src='assets/app.js' ></script> 
 </body>
 </html>
