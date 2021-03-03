@@ -55,6 +55,9 @@ module.exports.routes = {
    // "/tenant_manager/find": "tenant_manager/find",
 
    // appbuilder routes:
+   "delete /app_builder/model/:objID/:ID": "appbuilder/model-delete",
+   "put /app_builder/model/:objID/:ID": "appbuilder/model-update",
+   "post /app_builder/model/:ID": "appbuilder/model-post",
    "get /app_builder/model/:ID": "appbuilder/model-get",
    "/multilingual/label-missing": "appbuilder/label-missing",
 

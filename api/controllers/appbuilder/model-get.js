@@ -40,34 +40,53 @@ module.exports = function (req, res) {
 
    req.ab.log(`appbuilder::model-get`);
 
+   var validationParams = Object.keys(inputParams);
+
+   // in our preparations for the service, we only validate the required ID
+   // param.
+   var validateThis = {};
+   (validationParams || []).forEach((p) => {
+      validateThis[p] = req.param(p);
+   });
+
    // verify your inputs are correct:
    // false : prevents an auto error response if detected. (default: true)
-   if (!req.ab.validateParameters(inputParams /*, false */)) {
+   if (!req.ab.validateParameters(inputParams, true, validateThis)) {
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;
    }
 
-   console.log(req.allParams());
-
    // create a new job for the service
    let jobData = {
       objectID: req.ab.param("ID"),
+      cond: {},
       // param : req.ab.param("param");
    };
 
-   var fields = ["where", "sort", "offset", "limit"];
+   var fields = ["where", "sort", "skip", "offset", "limit", "populate"];
    fields.forEach((f) => {
       var val = req.param(f);
       if (val) {
-         jobData[f] = val;
+         try {
+            jobData.cond[f] = JSON.parse(val);
+         } catch (e) {
+            req.ab.log(e);
+            jobData.cond[f] = val;
+         }
       }
    });
+
+   // move "skip" => "offset"
+   if (jobData.cond.skip) {
+      jobData.cond.offset = jobData.cond.skip;
+      delete jobData.cond.skip;
+   }
 
    // verify that the request is from a socket not a normal HTTP
    if (req.isSocket) {
       // Subscribe socket to a room with the name of the object's ID
-      sails.sockets.join(req, jobData.objectID);
+      sails.sockets.join(req, req.ab.socketKey(jobData.objectID));
    }
 
    // pass the request off to the uService:
@@ -76,6 +95,8 @@ module.exports = function (req, res) {
          res.ab.error(err);
          return;
       }
+      // req.ab.log(JSON.stringify(results));
+      req.ab.performance.log();
       res.ab.success(results);
    });
 };

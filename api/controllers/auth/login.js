@@ -35,6 +35,7 @@ module.exports = function (req, res) {
          req.ab.log("successful auth/login");
          req.session.tenant_id = req.ab.tenantID;
          req.session.user_id = user.uuid;
+         req.ab.performance.log();
          res.ab.success({ user });
       }
    );

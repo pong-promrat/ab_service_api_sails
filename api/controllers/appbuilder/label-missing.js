@@ -63,6 +63,7 @@ module.exports = function (req, res) {
          res.ab.error(err);
          return;
       }
+      req.ab.performance.log();
       res.ab.success(results);
    });
 };

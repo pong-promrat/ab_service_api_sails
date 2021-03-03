@@ -17,9 +17,9 @@ const async = require("async");
 const path = require("path");
 const shell = require("shelljs");
 // setup our base path:
-var pathFiles =
-   sails.config.file_processor.basePath ||
-   path.sep + path.join("data", "file_processor");
+var pathFiles = sails.config.file_processor
+   ? sails.config.file_processor.basePath
+   : false || path.sep + path.join("data", "file_processor");
 
 // create that path if it doesn't already exist:
 shell.mkdir("-p", pathFiles);
@@ -31,7 +31,7 @@ var params = ["appKey", "permission", "isWebix"];
 var requiredParams = ["appKey", "permission"];
 
 // make sure our BasePath is created:
-module.exports = function(req, res) {
+module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
 
    req.ab.log(`file_processor::create`);
@@ -55,9 +55,9 @@ module.exports = function(req, res) {
                      pathFiles,
                      sails.config.file_processor.uploadPath || "tmp"
                   ),
-                  maxBytes: sails.config.file_processor.maxBytes || 10000000
+                  maxBytes: sails.config.file_processor.maxBytes || 10000000,
                },
-               function(err, list) {
+               function (err, list) {
                   if (err) {
                      err.code = 500;
                      next(err);
@@ -82,12 +82,12 @@ module.exports = function(req, res) {
 
          // 2) read in the parameters
          (next) => {
-            params.forEach(function(p) {
+            params.forEach(function (p) {
                options[p] = req.param(p) || "??";
             });
 
             var missingParams = [];
-            requiredParams.forEach(function(r) {
+            requiredParams.forEach(function (r) {
                if (options[r] == "??") {
                   missingParams.push(r);
                }
@@ -115,7 +115,7 @@ module.exports = function(req, res) {
                permission: options.permission,
                size: fileEntry.size,
                type: fileEntry.type,
-               fileName: fileEntry.filename
+               fileName: fileEntry.filename,
             };
 
             // pass the request off to the uService:
@@ -132,7 +132,7 @@ module.exports = function(req, res) {
             // TODO: verify serviceResponse has uuid
 
             var data = {
-               uuid: serviceResponse.uuid
+               uuid: serviceResponse.uuid,
             };
 
             // if this was a Webix uploader:
@@ -143,10 +143,10 @@ module.exports = function(req, res) {
             ) {
                data.status = "server";
             }
-
+            req.ab.performance.log();
             res.ab.success(data);
             next();
-         }
+         },
       ],
       (err, results) => {
          // handle error reporting back to the client

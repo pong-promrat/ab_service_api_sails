@@ -12,10 +12,10 @@ var hashTitles = {
 };
 
 module.exports = {
-   labelMissing: function (req, res) {
-      console.log("!!!! LabelMissing !!!!");
-      res.ab.success({ done: true });
-   },
+   // labelMissing: function (req, res) {
+   //    console.log("!!!! LabelMissing !!!!");
+   //    res.ab.success({ done: true });
+   // },
    /**
     * get /
     * in cases where we are not embedded in another webpage, we can
@@ -222,6 +222,7 @@ module.exports = {
                   });
                })
                .then(() => {
+                  req.ab.performance.log();
                   res.ab.success({
                      tenant: configTenant,
                      user: configUser,
