@@ -61,44 +61,13 @@ module.exports = function (req, res) {
       }
    });
 
-   async.series(
-      {
-         update: (done) => {
-            req.ab.serviceRequest(
-               "appbuilder.model-update",
-               jobData,
-               (err, results) => {
-                  done(err, results);
-               }
-            );
-         },
-
-         // trigger : (done) => {}
-
-         // logger : (done) => {}
-      },
-      (err, results) => {
-         if (err) {
-            res.ab.error(err);
-            return;
-         }
-
-         // We want to broadcast the change from the server to the client so all datacollections can properly update
-         // Build a payload that tells us what was updated
-         var payload = {
-            objectId: jobData.objectID,
-            data: results.update,
-         };
-
-         // Broadcast the update
-         sails.sockets.broadcast(
-            req.ab.socketKey(jobData.objectID),
-            "ab.datacollection.update",
-            payload
-         );
-
-         req.ab.performance.log();
-         res.ab.success(results.update);
+   req.ab.serviceRequest("appbuilder.model-update", jobData, (err, results) => {
+      if (err) {
+         req.log("Error in model-update : ", err);
+         res.ab.error(err);
+         return;
       }
-   );
+
+      res.ab.success(results);
+   });
 };

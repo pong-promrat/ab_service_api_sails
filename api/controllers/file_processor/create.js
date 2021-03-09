@@ -143,7 +143,6 @@ module.exports = function (req, res) {
             ) {
                data.status = "server";
             }
-            req.ab.performance.log();
             res.ab.success(data);
             next();
          },

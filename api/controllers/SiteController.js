@@ -222,7 +222,6 @@ module.exports = {
                   });
                })
                .then(() => {
-                  req.ab.performance.log();
                   res.ab.success({
                      tenant: configTenant,
                      user: configUser,

@@ -10,17 +10,17 @@ const LocalStrategy = require("passport-local").Strategy;
 /*
  * this is a common req.ab instance for performing user lookups:
  */
-const reqAB = AB.reqAB({}, {});
-reqAB.jobID = "authUser";
+const reqApi = AB.reqApi({}, {});
+reqApi.jobID = "authUser";
 
 /*
  * Passport Initialization:
  */
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
    done(null, user.uuid);
 });
-passport.deserializeUser(function(uuid, done) {
-   reqAB.serviceRequest("user_manager.find", { uuid }, (err, user) => {
+passport.deserializeUser(function (uuid, done) {
+   reqApi.serviceRequest("user_manager.find", { uuid }, (err, user) => {
       if (err) {
          done(err);
          return;
@@ -30,8 +30,8 @@ passport.deserializeUser(function(uuid, done) {
 });
 
 passport.use(
-   new LocalStrategy(function(email, password, done) {
-      reqAB.serviceRequest(
+   new LocalStrategy(function (email, password, done) {
+      reqApi.serviceRequest(
          "user_manager.find.password",
          { email, password },
          (err, user) => {
@@ -92,7 +92,7 @@ module.exports = (req, res, next) => {
                req.ab.passport = passport;
                done();
             }
-         }
+         },
       ],
       (err) => {
          next(err);

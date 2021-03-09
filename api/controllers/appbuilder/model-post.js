@@ -55,43 +55,13 @@ module.exports = function (req, res) {
       }
    });
 
-   async.series(
-      {
-         create: (done) => {
-            req.ab.serviceRequest(
-               "appbuilder.model-post",
-               jobData,
-               (err, newItem) => {
-                  done(err, newItem);
-               }
-            );
-         },
-         // trigger: (done) => {},
-         // logger: (done) => {}
-      },
-      (err, results) => {
-         if (err) {
-            req.ab.log("api_sails:model-post:error:", err);
-            res.ab.error(err);
-            return;
-         }
-
-         // We want to broadcast the change from the server to the client so all datacollections can properly update
-         // Build a payload that tells us what was updated
-         var payload = {
-            objectId: jobData.objectID,
-            data: results.create,
-         };
-
-         // Broadcast the create
-         sails.sockets.broadcast(
-            req.ab.socketKey(jobData.objectID),
-            "ab.datacollection.create",
-            payload
-         );
-
-         req.ab.performance.log();
-         res.ab.success(results.create);
+   req.ab.serviceRequest("appbuilder.model-post", jobData, (err, newItem) => {
+      if (err) {
+         req.ab.log("api_sails:model-post:error:", err);
+         res.ab.error(err);
+         return;
       }
-   );
+
+      res.ab.success(newItem);
+   });
 };

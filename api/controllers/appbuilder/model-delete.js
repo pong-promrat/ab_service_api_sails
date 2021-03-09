@@ -6,7 +6,6 @@
  * header:  X-CSRF-Token : [token]
  * params:
  */
-const async = require("async");
 
 var inputParams = {
    objID: { string: { uuid: true }, required: true },
@@ -63,45 +62,14 @@ module.exports = function (req, res) {
       ID: req.ab.param("ID"),
    };
 
-   async.series(
-      {
-         delete: (done) => {
-            // pass the request off to the uService:
-            req.ab.serviceRequest(
-               "appbuilder.model-delete",
-               jobData,
-               (err, results) => {
-                  done(err, results);
-               }
-            );
-         },
-
-         // trigger: (done) => {},
-         // logger: (done) => {},
-      },
-      (err, results) => {
-         if (err) {
-            res.ab.error(err);
-            return;
-         }
-
-         // We want to broadcast the change from the server to the client so all
-         // datacollections can properly update
-         // Build a payload that tells us what was deleted
-         var payload = {
-            objectId: jobData.objectID,
-            id: jobData.ID,
-         };
-
-         // Broadcast the delete
-         sails.sockets.broadcast(
-            req.ab.socketKey(jobData.objectID),
-            "ab.datacollection.delete",
-            payload
-         );
-
-         req.ab.performance.log();
-         res.ab.success(results.delete);
+   // pass the request off to the uService:
+   req.ab.serviceRequest("appbuilder.model-delete", jobData, (err, results) => {
+      if (err) {
+         req.ab.log("Error model-delete:", err);
+         res.ab.error(err);
+         return;
       }
-   );
+
+      res.ab.success(results);
+   });
 };

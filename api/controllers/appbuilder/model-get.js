@@ -92,11 +92,11 @@ module.exports = function (req, res) {
    // pass the request off to the uService:
    req.ab.serviceRequest("appbuilder.model-get", jobData, (err, results) => {
       if (err) {
+         req.ab.log("api_sails:model-get:error:", err);
          res.ab.error(err);
          return;
       }
       // req.ab.log(JSON.stringify(results));
-      req.ab.performance.log();
       res.ab.success(results);
    });
 };
