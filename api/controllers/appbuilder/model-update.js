@@ -1,13 +1,13 @@
 /**
- * appbuilder/update.js
- *
+ * appbuilder/model-update.js
+ * Perform an Update operation on the data managed by a specified ABObject.
+ * This returns a fully populated row value of the newly created entry.
  *
  * url:     put /app_builder/model/:objID/:ID
  * header:  X-CSRF-Token : [token]
+ * return:  { rowValue }
  * params:
  */
-const async = require("async");
-
 var inputParams = {
    objID: { string: true, required: true },
    ID: { string: true, required: true },

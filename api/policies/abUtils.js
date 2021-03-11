@@ -28,13 +28,13 @@ module.exports = (req, res, next) => {
        * Service: api.broadcast
        * broadcast changes to our (web) clients.
        * @param {array[json]} data
-       *           An array of data packets to send. These packets should be in
-       *           the format:
+       *        An array of data packets to send. These packets should be in
+       *        the format:
        *             .room : {string} the sails socket room to broadcast to
        *             .event : {string} the message key on the client
        *             .data : {json} the data packet sent to the client
        * @param {fn} cb
-       *           a node style callback(err, data) for when this service is
+       *        a node style callback(err, data) for when this service is
        *        finished.
        */
       apiResponder = req.ab.serviceResponder("api.broadcast", (req, cb) => {

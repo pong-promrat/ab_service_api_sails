@@ -18,7 +18,15 @@ module.exports.routes = {
     *                                                                          *
     ***************************************************************************/
    "/": "SiteController.index",
+   // returns the default loader for the site.  It will determine the tenant
+   // and user from the url & user sessions if already set
+   // @return {HTML} for the framework to load.
+
    "get /admin": {
+      // returns the loader for the Tenant Administration site.
+      // The TenantID will be gathered as the default specified in the
+      // config.local.js
+      // @return {HTML} for the framework to load.
       controller: "SiteController",
       action: "index",
       useTenantID: true,
@@ -29,13 +37,10 @@ module.exports.routes = {
    "get /sails.io.js": "SiteController.sailsio",
 
    "get /config": "SiteController.config",
+   // request the configuration information for the current user
 
    "post /auth/login": "auth/login",
-
-   "get /query": "QueryController.query",
-
-   // AB Model Routes:
-   "get /model/find": "model/find",
+   // process the password login
 
    // file_processor routes:
    // "get  /file/:appKey/:uuid": "file_processor/read",
@@ -55,10 +60,19 @@ module.exports.routes = {
    // "/tenant_manager/find": "tenant_manager/find",
 
    // appbuilder routes:
-   "delete /app_builder/model/:objID/:ID": "appbuilder/model-delete",
+   // Find
+   "get /app_builder/model/:objID": "appbuilder/model-get",
+   "get /app_builder/model/:objID/count": "appbuilder/model-get-count",
+   // Create
+   "post /app_builder/model/:objID": "appbuilder/model-post",
+   "post /app_builder/model/:objID/batch": "appbuilder/model-post-batch",
+   // Update
    "put /app_builder/model/:objID/:ID": "appbuilder/model-update",
-   "post /app_builder/model/:ID": "appbuilder/model-post",
-   "get /app_builder/model/:ID": "appbuilder/model-get",
+   "put /app_builder/model/:objID/:ID/batch": "appbuilder/model-update-batch",
+   // Delete
+   "delete /app_builder/model/:objID/:ID": "appbuilder/model-delete",
+
+   // multilingual routes
    "/multilingual/label-missing": "appbuilder/label-missing",
 
 };

@@ -1,53 +1,55 @@
 /**
  * appbuilder/model-get.js
- * Perform a Find operation on the data managed by a specified ABObject.
+ * Perform a Count operation on the data managed by a specified ABObject.
+ * This returns a count of all the matching rows specified by the
+ * {where} parameter.
  *
  * url:     get /app_builder/model/:objID
  * header:  X-CSRF-Token : [token]
- * return:  {array} [ {rowentry}, ... ]
+ * return:  {obj} { count: {integer} }
  * params:
  */
 var inputParams = {
    objID: { string: true, required: true },
    where: { object: true, optional: true },
-   sort: { array: true, optional: true },
-   // sort: specify the fields used for sorting
-   //    [ { key: field.id, dir:["ASC", "DESC"]}, ... ]
-
-   populate: { boolean: true, optional: true },
-   // populate: return values with their connections populated?
-
-   //// Paging Entries: skip, offset, limit
-   skip: { number: { integer: true }, optional: true },
-   // skip: a legacy param that will be converted to offset
-   offset: { number: { integer: true }, optional: true },
-   // offset: the number of entries to skip.
-   limit: { number: { integer: true }, optional: true },
-   // limit: the number or entreis to return.
 };
 
 // make sure our BasePath is created:
 module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
 
-   req.ab.log(`appbuilder::model-get`);
+   req.ab.log(`appbuilder::model-get-count`);
+
+   var validationParams = Object.keys(inputParams);
+
+   // in our preparations for the service, we only validate the required
+   // objID param.
+   var validateThis = {};
+   (validationParams || []).forEach((p) => {
+      validateThis[p] = req.param(p);
+   });
 
    // verify your inputs are correct:
    // false : prevents an auto error response if detected. (default: true)
-   if (!req.ab.validateParameters(inputParams /* , true, validateThis */)) {
+   if (!req.ab.validateParameters(inputParams, true, validateThis)) {
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;
    }
 
+   // NOTE: for the count() service, we do NOT pass along any sort, limit, skip
+   // params, and populate is false.  We are just generating a count.
+
    // create a new job for the service
    let jobData = {
       objectID: req.ab.param("objID"),
-      cond: {},
+      cond: {
+         populate: false,
+      },
    };
 
-   Object.keys(inputParams).forEach((f) => {
-      if (f == "objID") return;
+   var fields = ["where"];
+   fields.forEach((f) => {
       var val = req.ab.param(f);
       if (val) {
          try {
@@ -59,12 +61,6 @@ module.exports = function (req, res) {
       }
    });
 
-   // move "skip" => "offset"
-   if (jobData.cond.skip) {
-      jobData.cond.offset = jobData.cond.skip;
-      delete jobData.cond.skip;
-   }
-
    // verify that the request is from a socket not a normal HTTP
    if (req.isSocket) {
       // Subscribe socket to a room with the name of the object's ID
@@ -74,11 +70,10 @@ module.exports = function (req, res) {
    // pass the request off to the uService:
    req.ab.serviceRequest("appbuilder.model-get", jobData, (err, results) => {
       if (err) {
-         req.ab.log("api_sails:model-get:error:", err);
+         req.ab.log("api_sails:model-get-count:error:", err);
          res.ab.error(err);
          return;
       }
-      // req.ab.log(JSON.stringify(results));
-      res.ab.success(results);
+      res.ab.success({ count: results.total_count });
    });
 };

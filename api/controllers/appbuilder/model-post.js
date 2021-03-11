@@ -1,19 +1,15 @@
 /**
  * appbuilder/model-post.js
+ * Perform a Create operation on the data managed by a specified ABObject.
+ * This returns a fully populated row value of the newly created entry.
  *
- *
- * url:     post /app_builder/model/:ID
+ * url:     post /app_builder/model/:objID
  * header:  X-CSRF-Token : [token]
+ * return:  { rowValue }
  * params:
  */
-
-const async = require("async");
-
 var inputParams = {
-   ID: { string: { uuid: true }, required: true },
-   /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
-   /*                -> NOTE: put .string  before .required                    */
-   /*    "param": { required: true } // NOTE: param Joi.any().required();      */
+   objID: { string: { uuid: true }, required: true },
 };
 
 // make sure our BasePath is created:
@@ -42,7 +38,7 @@ module.exports = function (req, res) {
    // create a new job for the service
    // start with our expected required inputs
    let jobData = {
-      objectID: req.ab.param("ID"),
+      objectID: req.ab.param("objID"),
       values: {},
       // relocate the rest of the params as .values
    };
