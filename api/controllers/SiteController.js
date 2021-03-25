@@ -95,11 +95,42 @@ module.exports = {
       // definitions: definitionManager.config(roles:user.roles);
       // labels: appbuilder.labels("en")
 
-      var configTenant = null;
-      var configUser = null;
-      var configSite = null;
       var configDefinitions = null;
+      // {array} [ {ABDefinition}, {ABDefinition}, ...]
+      // The list of ABxxxx definitions to send to the Web client to create
+      // the applications to display.
+
+      var configInbox = null;
+      // {array} [ {ABDefinition}, {ABDefinition}, ...]
+      // The list of ABxxxx definitions to send to the Web client to create
+      // the applications to display.
+
       var configLabels = null;
+      // {obj} { key: text }
+      // The labels used by the web platform to display.  They will be in the
+      // language of the user that is running this request.
+
+      var configSite = null;
+      // {obj} configSite
+      // The information details for this site, used by the WEB platform to
+      // process it's operation:
+      //    .tenants: {array} of different Tenant options
+
+      var configTenant = null;
+      // {obj}
+      // The configuration information for the CURRENT Tenant this request is
+      // associated with.
+      //    .id : {uuid}
+      //    .options: {obj} Configuration Details for the current Tenant's
+      //              operation.
+      //     ??   .authType: {string}
+      //     ??   .networkType: {string} the type of Network access to the server
+      //    .title: {string}
+      //    .clickTextToEnter: {string}
+
+      var configUser = null;
+      // {obj} configUser
+      // The User information for the CURRENT User that is making this request.
 
       async.parallel(
          [
@@ -199,23 +230,57 @@ module.exports = {
                   }
 
                   return new Promise((resolve /* , reject */) => {
-                     req.ab.log("TODO: implement appbuilder.definitions");
                      req.ab.log("configUser:", configUser);
 
-                     var jobData = {
-                        roles: configUser.roles,
-                     };
+                     async.parallel(
+                        [
+                           // Pull the Definitions for this user
+                           (done) => {
+                              var jobData = {
+                                 roles: configUser.roles,
+                              };
 
-                     // pass the request off to the uService:
-                     req.ab.serviceRequest(
-                        "appbuilder.definitionsForRoles",
-                        jobData,
-                        (err, results) => {
+                              // pass the request off to the uService:
+                              req.ab.serviceRequest(
+                                 "appbuilder.definitionsForRoles",
+                                 jobData,
+                                 (err, results) => {
+                                    if (err) {
+                                       req.ab.log("error:", err);
+                                       return;
+                                    }
+                                    configDefinitions = results;
+                                    done();
+                                 }
+                              );
+                           },
+
+                           // Pull the Inbox Items for this User
+                           (done) => {
+                              var jobData = {
+                                 users: [configUser.username],
+                                 roles: configUser.roles,
+                              };
+                              // pass the request off to the uService:
+                              req.ab.serviceRequest(
+                                 "process_manager.inbox.find",
+                                 jobData,
+                                 (err, results) => {
+                                    if (err) {
+                                       req.ab.log("error:", err);
+                                       return;
+                                    }
+                                    configInbox = results;
+                                    done();
+                                 }
+                              );
+                           },
+                        ],
+                        (err) => {
                            if (err) {
-                              req.ab.log("error:", err);
+                              reject(err);
                               return;
                            }
-                           configDefinitions = results;
                            resolve();
                         }
                      );
@@ -223,11 +288,12 @@ module.exports = {
                })
                .then(() => {
                   res.ab.success({
+                     definitions: configDefinitions,
+                     inbox: configInbox,
+                     labels: configLabels,
+                     site: configSite,
                      tenant: configTenant,
                      user: configUser,
-                     site: configSite,
-                     definitions: configDefinitions,
-                     labels: configLabels,
                   });
                })
                .catch((err) => {
