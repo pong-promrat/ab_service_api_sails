@@ -20,7 +20,7 @@ passport.serializeUser(function (user, done) {
    done(null, user.uuid);
 });
 passport.deserializeUser(function (uuid, done) {
-   reqApi.serviceRequest("user_manager.find", { uuid }, (err, user) => {
+   reqApi.serviceRequest("user_manager.user-find", { uuid }, (err, user) => {
       if (err) {
          done(err);
          return;
@@ -32,7 +32,7 @@ passport.deserializeUser(function (uuid, done) {
 passport.use(
    new LocalStrategy(function (email, password, done) {
       reqApi.serviceRequest(
-         "user_manager.find.password",
+         "user_manager.user-find-password",
          { email, password },
          (err, user) => {
             if (err) {
@@ -69,7 +69,7 @@ module.exports = (req, res, next) => {
                req.ab.log("authUser -> session");
                var userID = req.session.user_id;
                req.ab.serviceRequest(
-                  "user_manager.find",
+                  "user_manager.user-find",
                   { uuid: userID },
                   (err, user) => {
                      if (err) {

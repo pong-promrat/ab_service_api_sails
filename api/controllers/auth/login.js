@@ -40,7 +40,7 @@ module.exports = function (req, res) {
    }
 
    req.ab.serviceRequest(
-      "user_manager.find.password",
+      "user_manager.user-find-password",
       { email, password },
       (err, user) => {
          if (err) {
