@@ -18,7 +18,7 @@ var broadcastRequiredFields = ["room", "event", "data"];
 // a list of required fields each of our broadcast packets need to have.
 
 module.exports = (req, res, next) => {
-   req.ab = AB.reqApi(req, res);
+   req.ab = AB.reqApi(req, res, sails.config);
    res.ab = AB.resApi(req, res);
    req.ab.log(`${req.method} ${req.path}`);
 
