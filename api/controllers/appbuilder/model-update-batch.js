@@ -46,7 +46,7 @@ module.exports = function (req, res) {
          res.ab.success(true);
       })
       .catch((err) => {
-         req.log("Error in model-update-batch : ", err);
+         req.ab.log("Error in model-update-batch : ", err);
          res.ab.error(err);
       });
 };
@@ -65,7 +65,7 @@ function submitJob(req, objectID, ID, values) {
          jobData,
          (err, results) => {
             if (err) {
-               req.log("Error in model-update-batch : ", err);
+               req.ab.log("Error in model-update-batch : ", err);
                reject(err);
                return;
             }
