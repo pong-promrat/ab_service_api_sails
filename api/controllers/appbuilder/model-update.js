@@ -63,7 +63,7 @@ module.exports = function (req, res) {
 
    req.ab.serviceRequest("appbuilder.model-update", jobData, (err, results) => {
       if (err) {
-         req.log("Error in model-update : ", err);
+         req.ab.log("Error in model-update : ", err);
          res.ab.error(err);
          return;
       }
