@@ -19,14 +19,4 @@ module.exports.policies = {
     ***************************************************************************/
 
    "*": defaultStack,
-
-   // QueryController: {
-   //     query: defaultStack
-   // },
-
-   //
-   // api/controllers/model/  actions:
-   //
-   "model/*": defaultStack // all actions in model/**/**
-   // 'model/find': [ policy1 ]
 };
