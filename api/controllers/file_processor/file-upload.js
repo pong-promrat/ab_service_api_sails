@@ -1,64 +1,89 @@
 /**
- * file_processor/create.js
+ * file_processor/file-upload.js
  *
- * A system wide service to receive a file, store it locally, and send
- * back a uuid to reference this file.
  *
- * url:     POST /file/:appKey/:permission/:isWebix
+ * url:     post /file/upload/:objID/:fieldID
  * header:  X-CSRF-Token : [token]
  * params:
- *      file  : the image you are uploading
- *      appKey  : a unique Application Key that this image belongs to
- *      permission : the PermissionAction.action_key required for a user
- *            to access this file
- *      isWebix : {bool} should I format the response for a Webix Uploader?
  */
+
 const async = require("async");
 const path = require("path");
 const shell = require("shelljs");
+
 // setup our base path:
 var pathFiles = sails.config.file_processor
    ? sails.config.file_processor.basePath
-   : false || path.sep + path.join("data", "file_processor");
+   : false || path.sep + path.join("data");
+
+// expect that our location for storing files will be:
+// /data/[tenant.ID]/file_processor
+// /data/tmp  <<-- incoming file directory
 
 // create that path if it doesn't already exist:
 shell.mkdir("-p", pathFiles);
 
-// the possible parameters for this API call:
-var params = ["appKey", "permission", "isWebix"];
-
-// these parameters are required
-var requiredParams = ["appKey", "permission"];
+var inputParams = {
+   // objID: { string: { uuid: true }, required: true },
+   // fieldID: { string: { uuid: true }, required: true },
+   objID: { string: true, required: true },
+   fieldID: { string: true, required: true },
+   isWebix: { string: true, optional: true },
+   file_fullpath: { string: true, optional: true },
+   /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
+   /*                -> NOTE: put .string  before .required                    */
+   /*    "param": { required: true } // NOTE: param Joi.any().required();      */
+   /*    "param": { optional: true } // NOTE: param Joi.any().optional();      */
+};
 
 // make sure our BasePath is created:
 module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
 
-   req.ab.log(`file_processor::create`);
+   req.ab.log(`file_processor::file-upload`);
 
-   // params
-   var options = {};
+   // verify your inputs are correct:
+   if (!req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)) {
+      // an error message is automatically returned to the client
+      // so be sure to return here;
+      return;
+   }
+
+   var objID = req.ab.param("objID");
+   var fieldID = req.ab.param("fieldID");
+   var isWebix = req.ab.param("isWebix") || "??";
 
    var fileEntry;
-   // var fileRef;
+   // {obj}
+   // this will contain all the uploaded information about our incoming file
 
    var serviceResponse;
+   // {obj}
+   // our response back from the file_processor.file-upload service
 
    async.series(
       [
          // 1) finish downloading the file
          (next) => {
+            // store the files in our TEMP path
+            var dirname = path.join(
+               pathFiles,
+               sails.config.file_processor.uploadPath || "tmp"
+            );
+            var maxBytes = sails.config.file_processor.maxBytes || 10000000;
             req.file("file").upload(
-               {
-                  // store the files in our TEMP path
-                  dirname: path.join(
-                     pathFiles,
-                     sails.config.file_processor.uploadPath || "tmp"
-                  ),
-                  maxBytes: sails.config.file_processor.maxBytes || 10000000,
-               },
+               { dirname, maxBytes },
                function (err, list) {
                   if (err) {
+                     req.ab.notify.developer(err, {
+                        context:
+                           "api_sails:file_processor:create: file.upload()",
+                        objID,
+                        fieldID,
+                        isWebix,
+                        dirname,
+                        maxBytes,
+                     });
                      err.code = 500;
                      next(err);
                   } else {
@@ -80,6 +105,9 @@ module.exports = function (req, res) {
             );
          },
 
+         /*
+ *  Check to see if url params are ready before file.upload()
+ *
          // 2) read in the parameters
          (next) => {
             params.forEach(function (p) {
@@ -106,40 +134,43 @@ module.exports = function (req, res) {
 
             next();
          },
-
+*/
          // 3) pass the job to the client
          (next) => {
             var jobData = {
                name: fileEntry.fd.split(path.sep).pop(),
-               appKey: options.appKey,
-               permission: options.permission,
+               object: objID,
+               field: fieldID,
                size: fileEntry.size,
                type: fileEntry.type,
                fileName: fileEntry.filename,
+               uploadedBy: req.ab.userDefaults().username,
             };
 
             // pass the request off to the uService:
-            req.ab.serviceRequest("file.upload", jobData, (err, results) => {
-               serviceResponse = results;
-               next(err);
-            });
+            req.ab.serviceRequest(
+               "file_processor.file-upload",
+               jobData,
+               (err, results) => {
+                  serviceResponse = results;
+                  next(err);
+               }
+            );
          },
 
          // 3) package response to the client
          (next) => {
-            // req.ab.log(serviceResponse);
-
-            // TODO: verify serviceResponse has uuid
-
+            // simplify response to .uuid only
             var data = {
                uuid: serviceResponse.uuid,
             };
 
             // if this was a Webix uploader:
             if (
-               options.isWebix != "??" &&
-               options.isWebix != "false" &&
-               options.isWebix != false
+               isWebix != "??" &&
+               isWebix != "false" &&
+               isWebix != false &&
+               isWebix != 0
             ) {
                data.status = "server";
             }
@@ -156,8 +187,3 @@ module.exports = function (req, res) {
       }
    );
 };
-
-// TODO: testing:
-// file larger than config setting, then there should be an error message "EFILETOOLARGE"
-
-// SQL Injection on fields: tenant, appKey, permission

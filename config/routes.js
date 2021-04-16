@@ -43,8 +43,8 @@ module.exports.routes = {
    // process the password login
 
    // file_processor routes:
-   // "get  /file/:appKey/:uuid": "file_processor/read",
-   "post /file/:appKey/:permission/:isWebix": "file_processor/create",
+   "post /file/upload/:objID/:fieldID/:isWebix": "file_processor/file-upload",
+   "get  /file/:ID": "file_processor/file-get",
 
    /***************************************************************************
     *                                                                          *
