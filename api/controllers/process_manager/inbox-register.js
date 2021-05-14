@@ -47,6 +47,7 @@ module.exports = function (req, res) {
       // User connections and what would be available in the userform-create
       // handler:
       sails.sockets.join(req, req.ab.socketKey(configUser.uuid));
+      sails.sockets.join(req, req.ab.socketKey(configUser.username));
 
       // 2) all the Roles:
       (configUser.roles || []).forEach((role) => {
