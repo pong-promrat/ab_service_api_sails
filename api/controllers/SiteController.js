@@ -41,12 +41,6 @@ module.exports = {
          tenantID = `appbuilder-tenant="${sails.config.tenant_manager.siteTenantID}"`;
       }
 
-      // console.log();
-      // console.log("===============");
-      // console.log(sails);
-      // console.log("===============");
-      // console.log();
-
       res.view(
          // path to template: "views/site/index.ejs",
          { title, v: "2", layout: false, tenantID }
@@ -303,65 +297,5 @@ module.exports = {
                });
          }
       );
-
-      // hashTitles[req.ab.tenantID] = tconfig.options.title;
-
-      // res.send({
-      //    status: "success",
-      //    data: {
-      //       tenant: {
-      //          id: req.ab.tenantID,
-      //          options: {
-      //             title: "AppBuilder",
-      //             textClickToEnter: "Click to Enter the AppBuilder"
-      //          }
-      //       }
-      //    }
-      // });
    },
-
-   /*
-    * post /auth/logout
-    * remove the current user's authentication
-    */
-   authlogout: function (req, res) {
-      req.session.tenant_id = null;
-      req.session.user_id = null;
-
-      res.ab.success({});
-   }
-
-   /*
-    * post /auth/login
-    * perform a user authentication credentials check
-    */
-   // authLogin: function(req, res) {
-   //    req.ab.log("authLogin:");
-
-   //    var email = req.param("email");
-   //    var password = req.param("password");
-
-   //    if (!req.ab.tenantSet()) {
-   //       var tenant = req.param("tenant");
-   //       if (tenant) {
-   //          req.ab.tenantID = tenant;
-   //       }
-   //    }
-
-   //    req.ab.serviceRequest(
-   //       "user_manager.find.password",
-   //       { email, password },
-   //       (err, user) => {
-   //          if (err) {
-   //             req.ab.log("error logging in:", err);
-   //             res.ab.error(err, 401);
-   //             return;
-   //          }
-   //          req.ab.log("successful auth/login");
-   //          req.session.tenant_id = req.ab.tenantID;
-   //          req.session.user_id = user.uuid;
-   //          res.ab.success({ user });
-   //       }
-   //    );
-   // }
 };

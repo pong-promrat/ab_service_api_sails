@@ -22,7 +22,10 @@ module.exports = function (req, res) {
 
    req.ab.log(`process_manager::inbox-update`);
 
-   if (!req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)) {
+   if (
+      !(req.ab.validUser(/* false */)) ||
+      !req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)
+   ) {
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;

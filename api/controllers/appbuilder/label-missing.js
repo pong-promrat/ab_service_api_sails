@@ -42,7 +42,10 @@ module.exports = function (req, res) {
 
    // verify your inputs are correct:
    // false : prevents an auto error response if detected. (default: true)
-   if (!req.ab.validateParameters(inputParams /*, false */)) {
+   if (
+      !(req.ab.validUser(/* false */)) ||
+      !req.ab.validateParameters(inputParams /*, false */)
+   ) {
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;

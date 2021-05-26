@@ -21,9 +21,9 @@ module.exports = function (req, res) {
    req.ab.log(`process_manager::inbox-register`);
 
    // If there is no User, then we really can't do much from here.
-   if (!req.ab.user) {
-      req.ab.log("... No User Defined");
-      res.ab.error("user not initialized.");
+   if (!(req.ab.validUser(/* false */))) {
+      // req.ab.log("... No User Defined");
+      // res.ab.error("user not initialized.");
       return;
    }
 

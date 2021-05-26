@@ -33,7 +33,10 @@ module.exports = function (req, res) {
 
    req.ab.log(`log_manager::rowlog-find`);
 
-   if (!req.ab.validateParameters(inputParams /* , true, validateThis */)) {
+   if (
+      !(req.ab.validUser(/* false */)) ||
+      !req.ab.validateParameters(inputParams /* , true, validateThis */)
+   ) {
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;

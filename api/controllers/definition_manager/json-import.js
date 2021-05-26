@@ -42,20 +42,11 @@ module.exports = function (req, res) {
 
    req.ab.log(`definition_manager::json-import`);
 
-   // verify your inputs are correct:
-   // false : prevents an auto error response if detected. (default: true)
-   // valuesToCheck: {obj} a specified subset of the input values to validate.
-   //    { [key] : [value] }
-   //       [key] = inputParams[key] entry .
-   //       [value] = req.param(value)
-   //    if no values given, then req.allParams() are evaluated. In some cases
-   //    you'll want to only require a certain subset of input values and then
-   //    let the rest be evaluated by the destination service.
-   // if (!req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)) {
-   //    // an error message is automatically returned to the client
-   //    // so be sure to return here;
-   //    return;
-   // }
+   if (!(req.ab.validUser(/* false */))) {
+      // an error message is automatically returned to the client
+      // so be sure to return here;
+      return;
+   }
 
    req.ab.performance.mark("file.upload");
    req.file("upload").upload(function (err, files) {
