@@ -126,6 +126,14 @@ module.exports = {
       // {obj} configUser
       // The User information for the CURRENT User that is making this request.
 
+      var configMeta = {};
+      // {obj} configMeta
+      // The Web platform also requires additional info about Roles/Scopes/Users
+      // to function.
+      // configMeta.roles : {array} of all SiteRoles
+      // configMeta.scopes: {array} of all Scopes
+      // configMeta.users : {array} of all users (just { username } )
+
       async.parallel(
          [
             (done) => {
@@ -269,6 +277,22 @@ module.exports = {
                                  }
                               );
                            },
+
+                           // Pull the Config-Meta data
+                           (done) => {
+                              req.ab.serviceRequest(
+                                 "appbuilder.config-meta",
+                                 {},
+                                 (err, results) => {
+                                    if (err) {
+                                       req.ab.log("error:", err);
+                                       return;
+                                    }
+                                    configMeta = results;
+                                    done();
+                                 }
+                              );
+                           },
                         ],
                         (err) => {
                            if (err) {
@@ -288,6 +312,7 @@ module.exports = {
                      site: configSite,
                      tenant: configTenant,
                      user: configUser,
+                     meta: configMeta,
                   });
                })
                .catch((err) => {
