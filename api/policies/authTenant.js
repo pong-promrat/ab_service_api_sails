@@ -29,7 +29,7 @@ module.exports = (req, res, next) => {
       return;
    }
 
-   // - header: tenant_token: 'adslkfaldkfjaslk;jf'
+   // - header: tenant-token: 'adslkfaldkfjaslk;jf'
    if (req.headers && req.headers["tenant-token"]) {
       req.ab.log("authTenant -> token");
       req.ab.tenantID = req.headers["tenant-token"];
@@ -81,7 +81,7 @@ module.exports = (req, res, next) => {
          req.ab.log(`authTenant -> tenant_manager.find(${prefix})`);
 
          var jobData = {
-            key: prefix
+            key: prefix,
          };
 
          req.ab.serviceRequest(
@@ -93,7 +93,7 @@ module.exports = (req, res, next) => {
                   return;
                }
                if (results && results.uuid) {
-                  req.ab.log("   -> url:hashed");
+                  req.ab.log("   -> url:service");
                   hashLookup[prefix] = results.uuid;
                   req.ab.tenantID = results.uuid;
                   // be sure to set the session:
@@ -104,6 +104,7 @@ module.exports = (req, res, next) => {
             }
          );
       } else {
+         req.ab.log("authTenant -> no valid tenant options");
          // no Tenant ID known for this request
          // just keep going:
          next();

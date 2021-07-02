@@ -1,6 +1,19 @@
 /*
  * authUser
  * attempt to resolve which user this route is trying to work with.
+ * When this step is completed, there should be 1 of 3 conditions:
+ *    1) A User has not been resolved:
+ *       req.ab.passport : {Passport}
+ *       req.session.user_id : {null or undefined}
+ *       req.ab.user : {null or undefined}
+ *
+ *    2) A User is defined in the session info:
+ *       This means the User has been looked up via the session info
+ *       req.session.user_id : {SiteUser.uuid}
+ *       req.ab.user : {json of SiteUser entry}
+ *
+ * The only time the session info is set is during the auth/login.js
+ * routine.  After a successful login, the session.user_id is set.
  */
 const async = require("async");
 const AB = require("ab-utils");
@@ -10,17 +23,17 @@ const LocalStrategy = require("passport-local").Strategy;
 /*
  * this is a common req.ab instance for performing user lookups:
  */
-const reqAB = AB.reqAB({}, {});
-reqAB.jobID = "authUser";
+const reqApi = AB.reqApi({}, {});
+reqApi.jobID = "authUser";
 
 /*
  * Passport Initialization:
  */
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
    done(null, user.uuid);
 });
-passport.deserializeUser(function(uuid, done) {
-   reqAB.serviceRequest("user_manager.find", { uuid }, (err, user) => {
+passport.deserializeUser(function (uuid, done) {
+   reqApi.serviceRequest("user_manager.user-find", { uuid }, (err, user) => {
       if (err) {
          done(err);
          return;
@@ -30,9 +43,9 @@ passport.deserializeUser(function(uuid, done) {
 });
 
 passport.use(
-   new LocalStrategy(function(email, password, done) {
-      reqAB.serviceRequest(
-         "user_manager.find.password",
+   new LocalStrategy(function (email, password, done) {
+      reqApi.serviceRequest(
+         "user_manager.user-find-password",
          { email, password },
          (err, user) => {
             if (err) {
@@ -64,12 +77,12 @@ module.exports = (req, res, next) => {
          (done) => {
             // there are several ways a User can be specified:
 
-            // - session: user_id:'aedasl;dkfjasdlkfj'
+            // - session: user_id: {SiteUser.uuid}
             if (req.session && req.session.user_id) {
                req.ab.log("authUser -> session");
                var userID = req.session.user_id;
                req.ab.serviceRequest(
-                  "user_manager.find",
+                  "user_manager.user-find",
                   { uuid: userID },
                   (err, user) => {
                      if (err) {
@@ -92,7 +105,7 @@ module.exports = (req, res, next) => {
                req.ab.passport = passport;
                done();
             }
-         }
+         },
       ],
       (err) => {
          next(err);
