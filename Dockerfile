@@ -1,18 +1,18 @@
 ##
-## digiserve/ab-api-sails:develop
+## digiserve/ab-api-sails:master
 ##
 ## This is our microservice for handling all our incoming AB
 ## api requests.
 ##
 ## Docker Commands:
 ## ---------------
-## $ docker build -t digiserve/ab-api-sails:develop .
-## $ docker push digiserve/ab-api-sails:develop
+## $ docker build -t digiserve/ab-api-sails:master .
+## $ docker push digiserve/ab-api-sails:master
 ##
 
-FROM digiserve/service-cli:develop
+FROM digiserve/service-cli:master
 
-RUN git clone --recursive https://github.com/appdevdesigns/ab_service_api_sails.git app && cd app && git checkout develop && npm install
+RUN git clone --recursive https://github.com/appdevdesigns/ab_service_api_sails.git app && cd app && npm install
 
 WORKDIR /app
 
