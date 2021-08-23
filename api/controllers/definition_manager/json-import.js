@@ -9,12 +9,12 @@
 
 const fs = require("fs");
 
-var inputParams = {
-   /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
-   /*                -> NOTE: put .string  before .required                    */
-   /*    "param": { required: true } // NOTE: param Joi.any().required();      */
-   /*    "param": { optional: true } // NOTE: param Joi.any().optional();      */
-};
+// var inputParams = {
+/*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
+/*                -> NOTE: put .string  before .required                    */
+/*    "param": { required: true } // NOTE: param Joi.any().required();      */
+/*    "param": { optional: true } // NOTE: param Joi.any().optional();      */
+// };
 // { key : {validationObj} }
 //   key: the name of the input parameter passed into the api
 //   {validationObj} : description of the validation rules
@@ -82,7 +82,7 @@ module.exports = function (req, res) {
                   req.ab.serviceRequest(
                      "definition_manager.json-import",
                      jobData,
-                     (err, results) => {
+                     (err /*, results */) => {
                         if (err) {
                            req.ab.log("Error in json-import : ", err);
                            res.ab.error(err);
