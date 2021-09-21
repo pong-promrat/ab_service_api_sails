@@ -323,4 +323,27 @@ module.exports = {
          }
       );
    },
+
+   /*
+    * get /plugin/:key
+    * return the proper path for the plugin requested for this Tenant.
+    */
+   pluginLoad: function (req, res) {
+      var key = req.param("key");
+      // {string} should resolve to the filename: {key}.js of the plugin
+      // file to load.
+
+      req.ab.log(`/plugin/${key}`);
+      if (key.indexOf("ABDesigner.") == 0) {
+         // ABDesigner is our common plugin for all Tenants.
+         // We share the same tenant/default/ABDesigner.js file
+         return res.redirect(`/assets/tenant/default/${key}`);
+      }
+      if (req.ab.tenantSet()) {
+         // Other plugins are loaded in reference to the tenant and
+         // what they have loaded.
+         return res.redirect(`/assets/tenant/${req.ab.tenantID}/${key}.js`);
+      }
+      res.ab.error(new Error("not tenant set. Login first."));
+   },
 };

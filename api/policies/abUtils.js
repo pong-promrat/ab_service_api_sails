@@ -62,6 +62,7 @@ module.exports = (req, res, next) => {
                errors.push({ message: errMsg, packet: data });
                return;
             }
+            console.log(`broadcasting: ${d.room} ${d.event}`);
             sails.sockets.broadcast(d.room, d.event, d.data);
          });
 
