@@ -25,6 +25,7 @@ module.exports = function (req, res) {
    });
    if (
       !(req.ab.validUser(/* false */)) ||
+      !(req.ab.validBuilder(/* false */)) ||
       !req.ab.validateParameters(inputParams, true, valuesToCheck)
    ) {
       // an error message is automatically returned to the client

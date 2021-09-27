@@ -19,6 +19,7 @@ module.exports = function (req, res) {
 
    if (
       !(req.ab.validUser(/* false */)) ||
+      !(req.ab.validBuilder(/* false */)) ||
       !req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)
       // TODO: add req.ab.validUserRole("System Developer")
    ) {

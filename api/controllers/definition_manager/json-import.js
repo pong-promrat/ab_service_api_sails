@@ -42,7 +42,10 @@ module.exports = function (req, res) {
 
    req.ab.log(`definition_manager::json-import`);
 
-   if (!(req.ab.validUser(/* false */))) {
+   if (
+      !(req.ab.validUser(/* false */)) ||
+      !(req.ab.validBuilder(/* false */))
+   ) {
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;

@@ -99,6 +99,13 @@ module.exports = {
       // The list of ABxxxx definitions to send to the Web client to create
       // the applications to display.
 
+      var configInboxMeta = null;
+      // {array} [ { appData}, ...]
+      // Inbox items need a minimum set of Application / Process data to
+      // display correctly.  It is possible a User might have an Inbox Item
+      // related to an Application they do not have Rights to access, so we
+      // need to send this data along with the configuration data.
+
       var configLabels = null;
       // {obj} { key: text }
       // The labels used by the web platform to display.  They will be in the
@@ -176,8 +183,6 @@ module.exports = {
             },
 
             (done) => {
-               var jobData = {};
-
                // pass the request off to the uService:
                req.ab.serviceRequest(
                   "tenant_manager.config.list",
@@ -231,7 +236,7 @@ module.exports = {
                      return;
                   }
 
-                  return new Promise((resolve /* , reject */) => {
+                  return new Promise((resolve, reject) => {
                      req.ab.log("configUser:", configUser);
 
                      async.parallel(
@@ -269,11 +274,32 @@ module.exports = {
                                  jobData,
                                  (err, results) => {
                                     if (err) {
-                                       req.ab.log("error:", err);
+                                       req.ab.log("error inbox.find:", err);
+                                       done(err);
                                        return;
                                     }
                                     configInbox = results;
-                                    done();
+                                    // done();
+                                    // now ask for the inbox Meta data
+                                    var ids = results
+                                       .map((r) => r.definition)
+                                       .filter((r) => r);
+                                    req.ab.serviceRequest(
+                                       "process_manager.inbox.meta",
+                                       { ids },
+                                       (err, meta) => {
+                                          if (err) {
+                                             req.ab.log(
+                                                "error inbox.meta:",
+                                                err
+                                             );
+                                             done(err);
+                                             return;
+                                          }
+                                          configInboxMeta = meta;
+                                          done();
+                                       }
+                                    );
                                  }
                               );
                            },
@@ -308,6 +334,7 @@ module.exports = {
                   res.ab.success({
                      definitions: configDefinitions,
                      inbox: configInbox,
+                     inboxMeta: configInboxMeta,
                      labels: configLabels,
                      site: configSite,
                      tenant: configTenant,
@@ -319,6 +346,9 @@ module.exports = {
                   // How did we get here?
                   req.ab.log(err);
                   res.ab.error(err);
+                  req.ab.notify.developer(err, {
+                     context: "Error gathering Configuration information",
+                  });
                });
          }
       );

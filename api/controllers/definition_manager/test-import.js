@@ -25,14 +25,6 @@ module.exports = function (req, res) {
    }
 
    // verify your inputs are correct:
-   // false : prevents an auto error response if detected. (default: true)
-   // valuesToCheck: {obj} a specified subset of the input values to validate.
-   //    { [key] : [value] }
-   //       [key] = inputParams[key] entry .
-   //       [value] = req.param(value)
-   //    if no values given, then req.allParams() are evaluated. In some cases
-   //    you'll want to only require a certain subset of input values and then
-   //    let the rest be evaluated by the destination service.
    if (
       !(req.ab.validUser(/* false */)) ||
       !req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)

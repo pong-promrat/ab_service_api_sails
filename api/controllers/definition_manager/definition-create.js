@@ -31,6 +31,7 @@ module.exports = function (req, res) {
    //    let the rest be evaluated by the destination service.
    if (
       !(req.ab.validUser(/* false */)) ||
+      !(req.ab.validBuilder(/* false */)) ||
       !req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)
    ) {
       // an error message is automatically returned to the client
