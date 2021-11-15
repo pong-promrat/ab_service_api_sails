@@ -39,8 +39,6 @@ module.exports = function (req, res) {
       return;
    }
 
-   // TODO:
-   // User must be using ABDesigner, so
    // Add User to definition.* rooms.
    // verify that the request is from a socket not a normal HTTP
    if (req.isSocket) {
