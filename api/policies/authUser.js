@@ -62,6 +62,7 @@ const passportInitialize = passport.initialize();
 const passportSession = passport.session();
 
 module.exports = (req, res, next) => {
+   
    async.series(
       [
          (done) => {
