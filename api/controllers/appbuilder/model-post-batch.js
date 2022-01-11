@@ -56,8 +56,12 @@ module.exports = function (req, res) {
 
    var allCreates = [];
    batch.forEach((newRecord) => {
+      // newRecord: {hash}
+      //   .id : {int} the client side id of an entry they are trying to create
+      //   .data : {json} the key=>value hash of the new entry.
+
       allCreates.push(
-         submitJob(req, objectID, newRecord)
+         submitJob(req, objectID, newRecord.data)
             .then((result) => {
                allResults[newRecord.id] = result;
             })
