@@ -41,9 +41,21 @@ module.exports = {
          tenantID = `appbuilder-tenant="${sails.config.tenant_manager.siteTenantID}"`;
       }
 
+      // defaultView specifies which portal_* view to default to.
+      // normally it should show up in the work view
+      let defaultView = `appbuilder-view="work"`;
+      if (!req.ab.user) {
+         // unless we are not logged in. then we show the login form:
+         defaultView = `appbuilder-view="auth_login_form"`;
+      }
+      if (req.session?.defaultView) {
+         defaultView = req.session.defaultView;
+         req.ab.log(">>> PULLING Default View from Session");
+      }
+
       res.view(
          // path to template: "views/site/index.ejs",
-         { title, v: "2", layout: false, tenantID }
+         { title, v: "2", layout: false, tenantID, defaultView }
       );
       return;
    },
@@ -167,8 +179,17 @@ module.exports = {
                   return;
                }
 
+               // simplify the user data:
+               let userSimple = {};
+               Object.keys(req.ab.user).forEach((k)=>{
+                  if (k.indexOf("__relation") > -1) return;
+                  if (k.indexOf("AB") == 0) return;
+                  if (k.indexOf("SITE") == 0) return;
+                  userSimple[k] = req.ab.user[k];
+               })
+
                var jobData = {
-                  user: req.ab.user,
+                  user: userSimple,
                };
 
                // pass the request off to the uService:
