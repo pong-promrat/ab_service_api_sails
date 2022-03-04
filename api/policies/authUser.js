@@ -20,6 +20,11 @@ const AB = require("ab-utils");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 
+var commonRequest = {};
+// {lookupHash} /* user.uuid : Promise.resolves(User) */
+// A shared lookup hash to reuse the same user lookup when multiple attempts
+// are being attempted in parallel.
+
 /*
  * this is a common req.ab instance for performing user lookups:
  */
@@ -62,7 +67,6 @@ const passportInitialize = passport.initialize();
 const passportSession = passport.session();
 
 module.exports = (req, res, next) => {
-   
    async.series(
       [
          (done) => {
@@ -81,19 +85,48 @@ module.exports = (req, res, next) => {
             // - session: user_id: {SiteUser.uuid}
             if (req.session && req.session.user_id) {
                req.ab.log("authUser -> session");
-               var userID = req.session.user_id;
-               req.ab.serviceRequest(
-                  "user_manager.user-find",
-                  { uuid: userID },
-                  (err, user) => {
-                     if (err) {
-                        done(err);
-                        return;
-                     }
+               let userID = req.session.user_id;
+               let key = `${req.ab.tenantID}-${userID}`;
+
+               // make sure we have a Promise that will resolve to
+               // the user created for this userID
+               if (!commonRequest[key]) {
+                  commonRequest[key] = new Promise((resolve, reject) => {
+                     req.ab.serviceRequest(
+                        "user_manager.user-find",
+                        { uuid: userID },
+                        (err, user) => {
+                           if (err) {
+                              reject(err);
+                              return;
+                           }
+                           resolve(user);
+                        }
+                     );
+                  });
+                  commonRequest[key].__count = 0;
+               }
+
+               // now use this Promise and retrieve the user
+               commonRequest[key].__count++;
+               commonRequest[key]
+                  .then((user) => {
                      req.ab.user = user;
+
+                     if (commonRequest[key]) {
+                        req.ab.log(
+                           `authUser -> lookup shared among ${commonRequest[key].__count} requests.`
+                        );
+                        // we can remove the Promise now
+                        delete commonRequest[key];
+                     }
+
                      done(null, user);
-                  }
-               );
+                  })
+                  .catch((err) => {
+                     done(err);
+                  });
+
                return;
             } else {
                // the user is unknown at this point.
