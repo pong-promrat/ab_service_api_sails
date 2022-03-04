@@ -270,7 +270,7 @@ module.exports = {
 
                               // pass the request off to the uService:
                               req.ab.serviceRequest(
-                                 "appbuilder.definitionsForRoles",
+                                 "definition_manager.definitionsForRoles",
                                  jobData,
                                  (err, results) => {
                                     if (err) {
@@ -328,7 +328,7 @@ module.exports = {
                            // Pull the Config-Meta data
                            (done) => {
                               req.ab.serviceRequest(
-                                 "appbuilder.config-meta",
+                                 "user_manager.config-meta",
                                  {},
                                  (err, results) => {
                                     if (err) {
