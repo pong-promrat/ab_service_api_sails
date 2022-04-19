@@ -8,33 +8,9 @@
  */
 
 var inputParams = {
-   /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
-   /*                -> NOTE: put .string  before .required                    */
-   /*    "param": { required: true } // NOTE: param Joi.any().required();      */
-   /*    "param": { optional: true } // NOTE: param Joi.any().optional();      */
    viewID: { string: true, required: true },
    where: { object: true, optional: true },
 };
-// { key : {validationObj} }
-//   key: the name of the input parameter passed into the api
-//   {validationObj} : description of the validation rules
-//        An object hash describing the validation checks to use. At
-//        the top level the Hash is: { [paramName] : {ruleHash} }
-//        Each {ruleHash} follows this format:
-//        "parameterName" : {
-//           {joi.fn}  : true,  // performs: joi.{fn}();
-//            {joi.fn} : {
-//              {joi.fn1} : true,   // performs: joi.{fn}().{fn1}();
-//              {joi.fn2} : { options } // performs: joi.{fn}().{fn2}({options})
-//            }
-//            // examples:
-//            "required" : {bool},  // default = false
-//
-//            // custom:
-//            "validation" : {fn} a function(value, {allValues hash}) that
-//                           returns { error:{null || {new Error("Error Message")} }, result: {normalize(value)}}
-//         }
-//        (see https://joi.dev/api)
 
 // make sure our BasePath is created:
 module.exports = function (req, res) {
@@ -43,14 +19,6 @@ module.exports = function (req, res) {
    req.ab.log(`appbuilder::csv-export`);
 
    // verify your inputs are correct:
-   // false : prevents an auto error response if detected. (default: true)
-   // valuesToCheck: {obj} a specified subset of the input values to validate.
-   //    { [key] : [value] }
-   //       [key] = inputParams[key] entry .
-   //       [value] = req.param(value)
-   //    if no values given, then req.allParams() are evaluated. In some cases
-   //    you'll want to only require a certain subset of input values and then
-   //    let the rest be evaluated by the destination service.
    if (
       !(req.ab.validUser(/* false */)) ||
       !req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)
@@ -80,6 +48,41 @@ module.exports = function (req, res) {
          res.ab.error(err);
          return;
       }
+
+      /*
+      // TODO: figure out if Sails already has a mysql connection?
+      // Or do we create our own?
+
+      // mysql Version:
+      let query = connection.query(results.sql);
+
+      let hasErrored = false;
+
+      // Set res header
+      res.setHeader(
+         "Content-disposition",
+         `attachment; filename=${outputFilename}.csv`
+      );
+
+      query
+         .on("error", (err) => {
+            res.ab.error(err);
+            hasErrored = true;
+         })
+         .on("result", (row) => {
+            res.write(
+               `${Object.values(row)
+                  .map((r) => `"${r != null ? r : ""}"`) // To encode a quote, use "" to support , (comma) in text
+                  .join(",")}\r\n`
+            );
+         })
+         .on("end", () => {
+            if (!hasErrored) {
+               res.end();
+            }
+         });
+
+      */
 
       // results.sql
       // knex.raw(sql).then((getKnexQuery) => {
