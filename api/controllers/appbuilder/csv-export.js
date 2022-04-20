@@ -30,11 +30,6 @@ module.exports = function (req, res) {
 
    // create a new job for the service
    let jobData = {
-      // param : req.ab.param("param");
-      //         req.ab.param() : returns values that have passed validation
-      //            and been normalized via the .validateParameters()
-      // param2: req.param("param2")
-      //         req.param()    : returns the raw values receive by sails.
       viewID: req.ab.param("viewID"),
    };
 
@@ -49,12 +44,23 @@ module.exports = function (req, res) {
          return;
       }
 
-      /*
-      // TODO: figure out if Sails already has a mysql connection?
-      // Or do we create our own?
+      req.ab.performance.mark("csvQuery");
+      req.ab.log("--> connecting to mysql");
 
-      // mysql Version:
-      let query = connection.query(results.sql);
+      let outputFilename = results.fileName;
+
+      let dataStore = sails.getDatastore("appbuilder");
+      let tenantConn = {};
+      Object.keys(dataStore.config).forEach((k) => {
+         tenantConn[k] = dataStore.config[k];
+      });
+      tenantConn.database = results.tenantDB;
+
+      let connection = dataStore.driver.mysql.createConnection(tenantConn);
+      connection.connect();
+
+      // NOTE: for streaming, do not send a callback
+      let query = connection.query(results.SQL);
 
       let hasErrored = false;
 
@@ -64,12 +70,18 @@ module.exports = function (req, res) {
          `attachment; filename=${outputFilename}.csv`
       );
 
+      // stream the results:
       query
          .on("error", (err) => {
+            req.ab.notify("developer", err, {
+               context: "api_sails: csv-export: error running sql",
+               results,
+            });
             res.ab.error(err);
             hasErrored = true;
          })
          .on("result", (row) => {
+            // console.log(row);
             res.write(
                `${Object.values(row)
                   .map((r) => `"${r != null ? r : ""}"`) // To encode a quote, use "" to support , (comma) in text
@@ -77,43 +89,13 @@ module.exports = function (req, res) {
             );
          })
          .on("end", () => {
+            req.ab.performance.measure("csvQuery");
+            req.ab.log("--> end connection.");
             if (!hasErrored) {
                res.end();
             }
+            connection.end();
+            req.ab.performance.log(["appbuilder.csv-export", "csvQuery"]);
          });
-
-      */
-
-      // results.sql
-      // knex.raw(sql).then((getKnexQuery) => {
-      // let knexQuery = getKnexQuery();
-      // let stream = knexQuery.stream();
-      // if (!sqlStream) {
-      //    return res.AD.error("Could not connect to SQL streaming", 500);
-      // }
-      //
-      // // Set res header
-      // res.setHeader(
-      //    "Content-disposition",
-      //    `attachment; filename=${outputFilename}.csv`
-      // );
-      //
-      // sqlStream.on("close", () => {
-      //    res.end();
-      // });
-      // sqlStream.on("finish", () => {
-      //    res.end();
-      // });
-      //
-      // sqlStream.on("data", (result) => {
-      //    res.write(
-      //       `${Object.values(result)
-      //          .map((r) => `"${r != null ? r : ""}"`) // To encode a quote, use "" to support , (comma) in text
-      //          .join(",")}\r\n`
-      //    );
-      // });
-      // })
-
-      res.ab.success(results);
    });
 };
