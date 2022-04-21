@@ -9,7 +9,7 @@
 
 var inputParams = {
    viewID: { string: true, required: true },
-   where: { object: true, optional: true },
+   where: { string: true, optional: true },
 };
 
 // make sure our BasePath is created:
@@ -34,7 +34,14 @@ module.exports = function (req, res) {
    };
 
    if (req.ab.param("where")) {
-      jobData.where = req.ab.param("where");
+      try {
+         jobData.where = JSON.parse(req.ab.param("where"));
+      } catch (e) {
+         req.ab.notify("developer", e, {
+            context: "api_sails: convert where condition",
+            where: req.ab.param("where"),
+         });
+      }
    }
 
    // pass the request off to the uService:
