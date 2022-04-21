@@ -380,6 +380,11 @@ module.exports = {
     * return the proper path for the plugin requested for this Tenant.
     */
    pluginLoad: function (req, res) {
+      var tenant = req.param("tenant");
+      // {string} resolves to the current tenant the browser is requesting
+      // the plugin for.
+      // note: might be "??" if the browser didn't have a tenant set.
+
       var key = req.param("key");
       // {string} should resolve to the filename: {key}.js of the plugin
       // file to load.
@@ -390,11 +395,15 @@ module.exports = {
          // We share the same tenant/default/ABDesigner.js file
          return res.redirect(`/assets/tenant/default/${key}`);
       }
-      if (req.ab.tenantSet()) {
+      if (tenant != "??") {
          // Other plugins are loaded in reference to the tenant and
          // what they have loaded.
-         return res.redirect(`/assets/tenant/${req.ab.tenantID}/${key}.js`);
+         let pluginSrc = `/assets/tenant/${tenant}/${key}`;
+         req.ab.log(`loading plugin: ${pluginSrc}`);
+         return res.redirect(pluginSrc);
       }
-      res.ab.error(new Error("not tenant set. Login first."));
+      req.ab.log(`no tenant set when requesting plugin ${key}`);
+      res.send("console.log('plugin request: login first');");
+      // res.ab.error(new Error("no tenant set. Login first."));
    },
 };
