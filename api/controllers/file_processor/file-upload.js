@@ -181,7 +181,7 @@ module.exports = function (req, res) {
             next();
          },
       ],
-      (err, results) => {
+      (err /*, results */) => {
          // handle error reporting back to the client
          if (err) {
             req.ab.log("api_sails:file_processor:create: error", err);

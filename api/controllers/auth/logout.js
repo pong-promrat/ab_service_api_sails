@@ -8,11 +8,11 @@
  * return:  { user }
  * params:
  */
-var inputParams = {
-   email: { string: { email: true }, required: true },
-   password: { string: true, required: true },
-   tenant: { string: true, optional: true },
-};
+// var inputParams = {
+//    email: { string: { email: true }, required: true },
+//    password: { string: true, required: true },
+//    tenant: { string: true, optional: true },
+// };
 
 module.exports = function (req, res) {
    req.ab.log("auth/logout():");
