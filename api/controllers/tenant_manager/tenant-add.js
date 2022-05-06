@@ -14,7 +14,7 @@ var inputParams = {
    username: { string: true, required: true },
    password: { string: true, required: true },
    email: { string: { email: true }, required: true },
-   url: { string: true, required: true },
+   url: { string: { uri: true }, required: true },
 };
 
 // make sure our BasePath is created:
