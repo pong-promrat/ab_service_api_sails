@@ -8,8 +8,8 @@
  */
 
 var inputParams = {
-   t: { string: true, required: true },
-   a: { string: true, required: true },
+   t: { string: true, required: true }, // tenant ID
+   a: { string: true, required: true }, // auth token
 };
 
 // make sure our BasePath is created:
@@ -19,14 +19,6 @@ module.exports = async function (req, res) {
    req.ab.log(`auth::reset-password-verify`);
 
    // verify your inputs are correct:
-   // false : prevents an auto error response if detected. (default: true)
-   // valuesToCheck: {obj} a specified subset of the input values to validate.
-   //    { [key] : [value] }
-   //       [key] = inputParams[key] entry .
-   //       [value] = req.param(value)
-   //    if no values given, then req.allParams() are evaluated. In some cases
-   //    you'll want to only require a certain subset of input values and then
-   //    let the rest be evaluated by the destination service.
    if (!req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)) {
       // an error message is automatically returned to the client
       // so be sure to return here;
