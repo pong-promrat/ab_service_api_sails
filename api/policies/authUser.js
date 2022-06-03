@@ -81,13 +81,41 @@ module.exports = (req, res, next) => {
          },
          (done) => {
             // there are several ways a User can be specified:
+            let key = null;
+            let userID = null;
 
             // - session: user_id: {SiteUser.uuid}
             if (req.session && req.session.user_id) {
                req.ab.log("authUser -> session");
-               let userID = req.session.user_id;
-               let key = `${req.ab.tenantID}-${userID}`;
+               userID = req.session.user_id;
+               key = `${req.ab.tenantID}-${userID}`;
+            }
 
+            // - Relay Header: authorization: 'relay@@@[accessToken]@@@[SiteUser.uuid]'
+            if (req.headers && req.headers["authorization"]) {
+               req.ab.log("authUser -> Relay Auth");
+               let parts = req.headers["authorization"].split("@@@");
+               if (
+                  parts[0] == "relay" &&
+                  parts[1] == sails.config.relay.mcc.accessToken
+               ) {
+                  userID = parts[2];
+                  key = `${req.ab.tenantID}-${userID}`;
+               } else {
+                  // invalid authorization data:
+                  let message =
+                     "api_sails:authUser:Relay Header: Invalid authorization data";
+                  let err = new Error(message);
+                  req.ab.notify.developer(err, {
+                     context: message,
+                     authorization: req.headers["authorization"],
+                  });
+                  // redirect to a Forbidden
+                  return res.forbidden();
+               }
+            }
+
+            if (key) {
                // make sure we have a Promise that will resolve to
                // the user created for this userID
                if (!commonRequest[key]) {
