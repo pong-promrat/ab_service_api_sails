@@ -98,14 +98,29 @@ module.exports = {
                         // Skip this step if user already exists
                         if (result) return ok();
 
+                        let email = profile.email || profile.emails || uuid;
+                        if (Array.isArray(email)) {
+                           email = email[0];
+                        }
+
+                        let language = profile.language || profile.languages;
+                        if (Array.isArray(language)) {
+                           language = language[0];
+                        }
+
                         reqApi.serviceRequest(
                            //"user_manager.new-user????",
                            "appbuilder.model-post",
                            { 
                               objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
-                              uuid,
-                              email: profile.email,
-                              password: ""
+                              values:{
+                                 uuid,
+                                 username: uuid,
+                                 email,
+                                 password: "CAS",
+                                 languageCode: language,
+                                 isActive: 1
+                              }
                            },
                            (err, user) => {
                               if (err) return ok(err);
