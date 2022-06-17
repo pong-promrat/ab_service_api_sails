@@ -18,7 +18,7 @@
 const async = require("async");
 const AB = require("ab-utils");
 const passport = require("passport");
-const CasStrategy = require("passport-cas").Strategy;
+const CasStrategy = require("passport-cas2").Strategy;
 
 let passportSession, passportInitialize;
 
@@ -81,7 +81,9 @@ module.exports = {
                            { uuid },
                            (err, user) => {
                               if (err) {
-                                 ok(err);
+                                 console.warn("Error from user-find", err.message || err);
+                                 //ok(err);
+                                 ok();
                                  return;
                               }
                               if (user) {

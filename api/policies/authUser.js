@@ -17,8 +17,8 @@
  */
 
 // A. Importing code while node.js starts up
-const authCAS = require(__dirname + "/lib/authUserCAS.js");
-const authLocal = require(__dirname + "/lib/authUserLocal.js");
+const authCAS = require(__dirname + "/../lib/authUserCAS.js");
+const authLocal = require(__dirname + "/../lib/authUserLocal.js");
 
 
 // B. Initializing during Sails.js bootstrap
@@ -43,7 +43,7 @@ global.AB_AUTHUSER_INIT = (sails) => {
 // (Global `sails` object is now ready)
 module.exports = (req, res, next) => {
    // CAS auth
-   if (sails.config.authentication.type == "cas") {
+   if (typeof sails.config.cas == "object") {
       authCAS.middleware(req, res, next);
    }
    // Local auth (default)

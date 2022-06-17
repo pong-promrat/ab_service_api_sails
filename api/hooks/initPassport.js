@@ -5,7 +5,7 @@
 
 module.exports = function(sails) {
     return {
-        configure: function() {
+        initialize: async function() {
             if (global.AB_AUTHUSER_INIT) {
                 global.AB_AUTHUSER_INIT(sails);
             } else {
