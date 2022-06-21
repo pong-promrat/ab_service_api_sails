@@ -43,7 +43,7 @@ module.exports = (req, res, next) => {
    // - url: prefix :  http://fcf.baseurl.org
    //   once we resolve the url prefix, we will store the tenant id in the
    //   session.
-   var urlHostname = req.hostname;
+   var urlHostname = req.headers["x-forwarded-host"] || req.hostname;
 
    // if we are proxied by NGINX:
    if (urlHostname == "api_sails") {
@@ -52,11 +52,12 @@ module.exports = (req, res, next) => {
       }
    }
 
-   var incomingURL = URL.parse(urlHostname);
-
+   //var incomingURL = URL.parse(urlHostname);
    // console.log("incomingURL:", incomingURL);
-   if (incomingURL.hostname) {
-      var parts = incomingURL.hostname.split(".");
+   //if (incomingURL.hostname) {
+   if (urlHostname) {
+      //var parts = incomingURL.hostname.split(".");
+      var parts = urlHostname.split(".");
       var prefix = parts.shift();
 
       //// DEV TESTING:
@@ -76,8 +77,16 @@ module.exports = (req, res, next) => {
          return;
       }
 
+      // We need this right?
+      if (prefix == "localhost") {
+         req.ab.log(`authTenant -> localhost default`);
+         req.ab.tenantID = "default";
+         next();
+         return;
+      }
+      
       // should we try to perform a lookup by the prefix?
-      if (prefix != "localhost" && !isNumeric(prefix)) {
+      if (!isNumeric(prefix)) {
          req.ab.log(`authTenant -> tenant_manager.find(${prefix})`);
 
          var jobData = {
@@ -116,6 +125,7 @@ module.exports = (req, res, next) => {
          next();
       }
    } else {
+      console.log("No hostname??");
       next();
    }
 };
