@@ -69,9 +69,10 @@ module.exports = {
                pgtURL: sails.config.cas.pgtURL || sails.config.cas.proxyURL,
                sslCert: sails.config.cas.sslCert || null,
                sslKey: sails.config.cas.sslKey || null,
-               sslCA: sails.config.cas.sslCA || null
+               sslCA: sails.config.cas.sslCA || null,
+               passReqToCallback: true
             },
-            function (username, profile, done) {
+            function (req, username, profile, done) {
                // Map the site_user.uuid value from the CAS profile
                let uuidKey = sails.config.cas.uuidKey || "id"; // "eaguid"
                let uuid = profile[uuidKey] || username;
@@ -85,7 +86,7 @@ module.exports = {
                   [
                      // Find user account
                      (ok) => {
-                        reqApi.serviceRequest(
+                        req.ab.serviceRequest(
                            "user_manager.user-find",
                            { uuid },
                            (err, user) => {
@@ -117,7 +118,7 @@ module.exports = {
                            language = language[0];
                         }
 
-                        reqApi.serviceRequest(
+                        req.ab.serviceRequest(
                            //"user_manager.new-user????",
                            "appbuilder.model-post",
                            { 
