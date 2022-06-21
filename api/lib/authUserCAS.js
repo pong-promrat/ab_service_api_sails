@@ -14,7 +14,16 @@
  *
  * The only time the session info is set is during the auth/login.js
  * routine.  After a successful login, the session.user_id is set.
+ *
+ * Add this to your config/local.js:
+ * cas: {
+ *    baseURL: "https://signin.example.com/cas",  // your CAS server URL
+ *    uuidKey: "guid", // CAS profile attribute to become your user UUID
+ *    siteURL: "http://localhost:1337"  // the external URL of AppBuilder
+ * }
+ *
  */
+const url = require("url");
 const async = require("async");
 const AB = require("ab-utils");
 const passport = require("passport");
@@ -238,6 +247,14 @@ module.exports = {
 
                // Authenticate the unknown user now
                else {
+                  if (sails.config.cas.siteURL) {
+                     // Inject the AppBuilder site URL from the config into 
+                     // the headers so that Passport CAS will know where to
+                     // redirect back to.
+                     let siteURL = url.parse(sails.config.cas.siteURL);
+                     req.headers["x-forwarded-proto"] = siteURL.protocol;
+                     req.headers["x-forwarded-host"] = siteURL.host;
+                  }
                   let auth = passport.authenticate("cas", (err, user, info) => {
                      // Server errors
                      if (err) {
