@@ -118,26 +118,63 @@ module.exports = {
                            language = language[0];
                         }
 
-                        req.ab.serviceRequest(
-                           //"user_manager.new-user????",
-                           "appbuilder.model-post",
-                           { 
-                              objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
-                              values:{
-                                 uuid,
-                                 username: uuid,
-                                 email,
-                                 password: "CAS",
-                                 languageCode: language,
-                                 isActive: 1
+                        // It may take several tries to create the user account entry
+                        let numTries = 5;
+                        let username = uuid;
+                        async.whilst(
+                           // while condition
+                           (w_cb) => {
+                              numTries -= 1;
+                              if (numTries == 0) {
+                                 w_cb(new Error("Too many tries to create user account"));
+                              }
+                              else {
+                                 w_cb(null, (result == null));
                               }
                            },
-                           (err, user) => {
-                              if (err) return ok(err);
-                              result = user;
-                              ok();
+                           // do
+                           (d_cb) => {
+                              req.ab.serviceRequest(
+                                 //"user_manager.new-user????",
+                                 "appbuilder.model-post",
+                                 { 
+                                    objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
+                                    values:{
+                                       uuid,
+                                       username,
+                                       email,
+                                       password: "CAS",
+                                       languageCode: language,
+                                       isActive: 1
+                                    }
+                                 },
+                                 (err, user) => {
+                                    // Duplicate user name
+                                    if (err && err.code == "ER_DUP_ENTRY") {
+                                       // Change username and try again
+                                       username = `${uuid}-${AB.uuid()}`;
+                                       d_cb();
+                                    }
+                                    // Some other error
+                                    else if (err) {
+                                       d_cb(err);
+                                    }
+                                    // Success
+                                    else {
+                                       result = user;
+                                       d_cb();
+                                    }
+                                 }
+                              );
+
+                           },
+                           // finished
+                           (err) => {
+                              if (err) ok(err);
+                              else ok();
                            }
                         );
+
                      },
                   ],
                   (err) => {

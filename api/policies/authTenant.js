@@ -76,17 +76,9 @@ module.exports = (req, res, next) => {
          next();
          return;
       }
-
-      // We need this right?
-      if (prefix == "localhost") {
-         req.ab.log(`authTenant -> localhost default`);
-         req.ab.tenantID = "default";
-         next();
-         return;
-      }
       
       // should we try to perform a lookup by the prefix?
-      if (!isNumeric(prefix)) {
+      if (prefix != "localhost" && !isNumeric(prefix)) {
          req.ab.log(`authTenant -> tenant_manager.find(${prefix})`);
 
          var jobData = {
