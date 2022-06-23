@@ -81,12 +81,13 @@ module.exports = {
                }
 
                let result = null;
+               reqApi.tenantID = req.ab.tenantID;
 
                async.series(
                   [
                      // Find user account
                      (ok) => {
-                        req.ab.serviceRequest(
+                        reqApi.serviceRequest(
                            "user_manager.user-find",
                            { uuid },
                            (err, user) => {
@@ -134,7 +135,7 @@ module.exports = {
                            },
                            // do
                            (d_cb) => {
-                              req.ab.serviceRequest(
+                              reqApi.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
                                  { 
