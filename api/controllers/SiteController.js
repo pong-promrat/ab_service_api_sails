@@ -98,13 +98,7 @@ module.exports = {
       // we need to combine several config sources:
       // tenant: tenantManager.config (id:uuid)
       // user: userManager.config(id:uuid)
-      // definitions: definitionManager.config(roles:user.roles);
       // labels: appbuilder.labels("en")
-
-      var configDefinitions = null;
-      // {array} [ {ABDefinition}, {ABDefinition}, ...]
-      // The list of ABxxxx definitions to send to the Web client to create
-      // the applications to display.
 
       var configInbox = null;
       // {array} [ {ABDefinition}, {ABDefinition}, ...]
@@ -123,7 +117,10 @@ module.exports = {
       // The labels used by the web platform to display.  They will be in the
       // language of the user that is running this request.
 
-      var configSite = null;
+      var configSite = {
+         relay: sails.config.relay?.enable ?? false,
+      };
+      console.log("configSite", configSite);
       // {obj} configSite
       // The information details for this site, used by the WEB platform to
       // process it's operation:
@@ -210,9 +207,7 @@ module.exports = {
                   {},
                   (err, results) => {
                      if (results) {
-                        configSite = {
-                           tenants: results,
-                        };
+                        configSite.tenants = results;
                      }
                      done(err);
                   }
@@ -262,27 +257,6 @@ module.exports = {
 
                      async.parallel(
                         [
-                           // Pull the Definitions for this user
-                           (done) => {
-                              var jobData = {
-                                 roles: configUser.roles,
-                              };
-
-                              // pass the request off to the uService:
-                              req.ab.serviceRequest(
-                                 "definition_manager.definitionsForRoles",
-                                 jobData,
-                                 (err, results) => {
-                                    if (err) {
-                                       req.ab.log("error:", err);
-                                       return;
-                                    }
-                                    configDefinitions = results;
-                                    done();
-                                 }
-                              );
-                           },
-
                            // Pull the Inbox Items for this User
                            (done) => {
                               var jobData = {
@@ -353,7 +327,6 @@ module.exports = {
                })
                .then(() => {
                   res.ab.success({
-                     definitions: configDefinitions,
                      inbox: configInbox,
                      inboxMeta: configInboxMeta,
                      labels: configLabels,
