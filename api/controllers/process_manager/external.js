@@ -1,6 +1,5 @@
 /**
- * process/external.js
- * Perform a Find operation on the data managed by a specified ABObject.
+ * process_manager/external.js
  *
  * url:     post /process/external
  * header:  X-CSRF-Token : [token]
