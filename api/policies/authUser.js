@@ -23,7 +23,7 @@ const authLocal = require(__dirname + "/../lib/authUserLocal.js");
 
 // B. Initializing during Sails.js bootstrap
 // (Global `sails` object is not yet defined)
-// @see api/hooks/initAuthUser.js
+// @see api/hooks/initPassport.js
 global.AB_AUTHUSER_INIT = (sails) => {
    // CAS auth
    if (typeof sails.config.cas == "object") {
@@ -40,8 +40,8 @@ global.AB_AUTHUSER_INIT = (sails) => {
 
 
 // C. Responding to requests at runtime
-// (Global `sails` object is now ready)
 module.exports = (req, res, next) => {
+   // (Global `sails` object is now ready)
    // CAS auth
    if (typeof sails.config.cas == "object") {
       authCAS.middleware(req, res, next);
