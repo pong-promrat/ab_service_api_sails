@@ -7,6 +7,7 @@
  * params:
  */
 const inputParams = {
+   data: { object: true, required: true },
    /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
    /*                -> NOTE: put .string  before .required                    */
    /*    "param": { required: true } // NOTE: param Joi.any().required();      */
@@ -27,7 +28,8 @@ module.exports = function (req, res) {
    // verify your inputs are correct:
    if (
       !(req.ab.validUser(/* false */)) ||
-      !(req.ab.validBuilder(/* false */))
+      !(req.ab.validBuilder(/* false */)) ||
+      !req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)
    ) {
       // an error message is automatically returned to the client
       // so be sure to return here;
