@@ -323,9 +323,9 @@ module.exports = {
                         return;
                      }
 
-                     // Success!
+                     // CAS auth succeeded
                      req.logIn(user, (err) => {
-                        // ... or not?
+                        // ... but the site did not?
                         if (err) {
                            res.serverError();
                            req.ab.notify.developer(err, {
@@ -336,8 +336,9 @@ module.exports = {
                         }
 
                         // Authenticated!
-                        // Do we need to do this?
                         req.session.user_id = user.uuid;
+                        req.session.tenant_id = req.ab.tenantID;
+                        req.ab.user = user;
                         done();
                      });
                   });
