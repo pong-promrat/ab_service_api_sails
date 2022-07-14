@@ -4,6 +4,8 @@
  */
 const async = require("async");
 const passport = require("passport");
+const abUtilsPolicy = require(__dirname + "/../policies/abUtils.js");
+const tenantPolicy = require(__dirname + "/../policies/authTenant.js");
 
 module.exports = function(sails) {
 
@@ -21,11 +23,26 @@ module.exports = function(sails) {
          before: {
             // Okta callback route.
             // User is sent here after signing on from the Okta site.
-            "GET authorization-code/callback": (req, res, next) => {
+            "GET /authorization-code/callback": (req, res, next) => {
                let auth = passport.authenticate("oidc", { failureRedirect: "/okta-error" });
 
                async.series(
                   [
+                     (ok) => {
+                        // Need to do this because policies are not auto-loaded for this route
+                        abUtilsPolicy(req, res, ok);
+                     },
+                     (ok) => {
+                        tenantPolicy(req, res, ok);
+                     },
+                     (ok) => {
+                        let middleware = passport.initialize();
+                        middleware(req, res, ok);
+                     },
+                     (ok) => {
+                        let middleware = passport.session();
+                        middleware(req, res, ok);
+                     },
                      (ok) => {
                         // Finalize Okta auth
                         auth(req, res, ok);
@@ -34,10 +51,8 @@ module.exports = function(sails) {
                         // User is now fully authenticated.
                         // `req.user` should have been set by Passport.
                         req.session.user_id = req.user.uuid;
-
-                        // Tenant and other AB policies are not avaialble here
-                        //req.session.tenant_id = req.ab.tenantID;
-                        //req.ab.user = req.user;
+                        req.session.tenant_id = req.ab.tenantID;
+                        req.ab.user = req.user;
                         ok();
                      }
                   ],

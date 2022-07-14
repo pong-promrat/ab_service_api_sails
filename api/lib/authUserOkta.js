@@ -76,8 +76,9 @@ module.exports = {
                callbackURL: `${sails.config.okta.siteURL}/authorization-code/callback`,
                scope: 'openid profile',
                skipUserProfile: false,
+               passReqToCallback: true
             },
-            function (issuer, profile, done) {
+            function (req, issuer, profile, done) {
                // Username from Okta is the email address
                let email = profile.username;
                // There is also a separate display name
@@ -138,7 +139,7 @@ module.exports = {
                                        username,
                                        email,
                                        password: "Okta",
-                                       //languageCode: language,
+                                       languageCode: "en",
                                        isActive: 1
                                     }
                                  },
