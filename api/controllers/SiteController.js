@@ -41,9 +41,21 @@ module.exports = {
          tenantID = `appbuilder-tenant="${sails.config.tenant_manager.siteTenantID}"`;
       }
 
+      // defaultView specifies which portal_* view to default to.
+      // normally it should show up in the work view
+      let defaultView = `appbuilder-view="work"`;
+      if (!req.ab.user) {
+         // unless we are not logged in. then we show the login form:
+         defaultView = `appbuilder-view="auth_login_form"`;
+      }
+      if (req.session?.defaultView) {
+         defaultView = req.session.defaultView;
+         req.ab.log(">>> PULLING Default View from Session");
+      }
+
       res.view(
          // path to template: "views/site/index.ejs",
-         { title, v: "2", layout: false, tenantID }
+         { title, v: "2", layout: false, tenantID, defaultView }
       );
       return;
    },
@@ -86,25 +98,29 @@ module.exports = {
       // we need to combine several config sources:
       // tenant: tenantManager.config (id:uuid)
       // user: userManager.config(id:uuid)
-      // definitions: definitionManager.config(roles:user.roles);
       // labels: appbuilder.labels("en")
-
-      var configDefinitions = null;
-      // {array} [ {ABDefinition}, {ABDefinition}, ...]
-      // The list of ABxxxx definitions to send to the Web client to create
-      // the applications to display.
 
       var configInbox = null;
       // {array} [ {ABDefinition}, {ABDefinition}, ...]
       // The list of ABxxxx definitions to send to the Web client to create
       // the applications to display.
 
+      var configInboxMeta = null;
+      // {array} [ { appData}, ...]
+      // Inbox items need a minimum set of Application / Process data to
+      // display correctly.  It is possible a User might have an Inbox Item
+      // related to an Application they do not have Rights to access, so we
+      // need to send this data along with the configuration data.
+
       var configLabels = null;
       // {obj} { key: text }
       // The labels used by the web platform to display.  They will be in the
       // language of the user that is running this request.
 
-      var configSite = null;
+      var configSite = {
+         relay: sails.config.relay?.enable ?? false,
+      };
+      console.log("configSite", configSite);
       // {obj} configSite
       // The information details for this site, used by the WEB platform to
       // process it's operation:
@@ -160,8 +176,17 @@ module.exports = {
                   return;
                }
 
+               // simplify the user data:
+               let userSimple = {};
+               Object.keys(req.ab.user).forEach((k)=>{
+                  if (k.indexOf("__relation") > -1) return;
+                  if (k.indexOf("AB") == 0) return;
+                  if (k.indexOf("SITE") == 0) return;
+                  userSimple[k] = req.ab.user[k];
+               })
+
                var jobData = {
-                  user: req.ab.user,
+                  user: userSimple,
                };
 
                // pass the request off to the uService:
@@ -176,17 +201,13 @@ module.exports = {
             },
 
             (done) => {
-               var jobData = {};
-
                // pass the request off to the uService:
                req.ab.serviceRequest(
                   "tenant_manager.config.list",
                   {},
                   (err, results) => {
                      if (results) {
-                        configSite = {
-                           tenants: results,
-                        };
+                        configSite.tenants = results;
                      }
                      done(err);
                   }
@@ -231,32 +252,11 @@ module.exports = {
                      return;
                   }
 
-                  return new Promise((resolve /* , reject */) => {
+                  return new Promise((resolve, reject) => {
                      req.ab.log("configUser:", configUser);
 
                      async.parallel(
                         [
-                           // Pull the Definitions for this user
-                           (done) => {
-                              var jobData = {
-                                 roles: configUser.roles,
-                              };
-
-                              // pass the request off to the uService:
-                              req.ab.serviceRequest(
-                                 "appbuilder.definitionsForRoles",
-                                 jobData,
-                                 (err, results) => {
-                                    if (err) {
-                                       req.ab.log("error:", err);
-                                       return;
-                                    }
-                                    configDefinitions = results;
-                                    done();
-                                 }
-                              );
-                           },
-
                            // Pull the Inbox Items for this User
                            (done) => {
                               var jobData = {
@@ -269,11 +269,32 @@ module.exports = {
                                  jobData,
                                  (err, results) => {
                                     if (err) {
-                                       req.ab.log("error:", err);
+                                       req.ab.log("error inbox.find:", err);
+                                       done(err);
                                        return;
                                     }
                                     configInbox = results;
-                                    done();
+                                    // done();
+                                    // now ask for the inbox Meta data
+                                    var ids = results
+                                       .map((r) => r.definition)
+                                       .filter((r) => r);
+                                    req.ab.serviceRequest(
+                                       "process_manager.inbox.meta",
+                                       { ids },
+                                       (err, meta) => {
+                                          if (err) {
+                                             req.ab.log(
+                                                "error inbox.meta:",
+                                                err
+                                             );
+                                             done(err);
+                                             return;
+                                          }
+                                          configInboxMeta = meta;
+                                          done();
+                                       }
+                                    );
                                  }
                               );
                            },
@@ -281,7 +302,7 @@ module.exports = {
                            // Pull the Config-Meta data
                            (done) => {
                               req.ab.serviceRequest(
-                                 "appbuilder.config-meta",
+                                 "user_manager.config-meta",
                                  {},
                                  (err, results) => {
                                     if (err) {
@@ -306,8 +327,8 @@ module.exports = {
                })
                .then(() => {
                   res.ab.success({
-                     definitions: configDefinitions,
                      inbox: configInbox,
+                     inboxMeta: configInboxMeta,
                      labels: configLabels,
                      site: configSite,
                      tenant: configTenant,
@@ -319,8 +340,43 @@ module.exports = {
                   // How did we get here?
                   req.ab.log(err);
                   res.ab.error(err);
+                  req.ab.notify.developer(err, {
+                     context: "Error gathering Configuration information",
+                  });
                });
          }
       );
+   },
+
+   /*
+    * get /plugin/:key
+    * return the proper path for the plugin requested for this Tenant.
+    */
+   pluginLoad: function (req, res) {
+      var tenant = req.param("tenant");
+      // {string} resolves to the current tenant the browser is requesting
+      // the plugin for.
+      // note: might be "??" if the browser didn't have a tenant set.
+
+      var key = req.param("key");
+      // {string} should resolve to the filename: {key}.js of the plugin
+      // file to load.
+
+      req.ab.log(`/plugin/${key}`);
+      if (key.indexOf("ABDesigner.") == 0) {
+         // ABDesigner is our common plugin for all Tenants.
+         // We share the same tenant/default/ABDesigner.js file
+         return res.redirect(`/assets/tenant/default/${key}`);
+      }
+      if (tenant != "??") {
+         // Other plugins are loaded in reference to the tenant and
+         // what they have loaded.
+         let pluginSrc = `/assets/tenant/${tenant}/${key}`;
+         req.ab.log(`loading plugin: ${pluginSrc}`);
+         return res.redirect(pluginSrc);
+      }
+      req.ab.log(`no tenant set when requesting plugin ${key}`);
+      res.send("console.log('plugin request: login first');");
+      // res.ab.error(new Error("no tenant set. Login first."));
    },
 };

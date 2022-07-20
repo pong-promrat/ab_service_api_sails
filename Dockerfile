@@ -9,10 +9,15 @@
 ## $ docker build -t digiserve/ab-api-sails:master .
 ## $ docker push digiserve/ab-api-sails:master
 ##
+ARG BRANCH=master
 
-FROM digiserve/service-cli:master
+FROM digiserve/service-cli:${BRANCH}
 
-RUN git clone --recursive https://github.com/appdevdesigns/ab_service_api_sails.git app && cd app && npm install
+COPY . /app
+
+WORKDIR /app
+
+RUN npm i -f
 
 WORKDIR /app
 

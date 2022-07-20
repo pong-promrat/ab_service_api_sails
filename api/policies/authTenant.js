@@ -71,7 +71,7 @@ module.exports = (req, res, next) => {
          req.ab.log(`authTenant -> url:hashed (${prefix})`);
          req.ab.tenantID = hashLookup[prefix];
          // be sure to set the session:
-         req.session.tenant_id = req.ab.tenantID;
+         // req.session.tenant_id = req.ab.tenantID;
          next();
          return;
       }
@@ -96,8 +96,14 @@ module.exports = (req, res, next) => {
                   req.ab.log("   -> url:service");
                   hashLookup[prefix] = results.uuid;
                   req.ab.tenantID = results.uuid;
+                  req.ab.log(
+                     "authTenant ==> found tenant id: " + req.ab.tenantID
+                  );
+                  console.log(req.session);
+                  // req.session = req.session || {};
+
                   // be sure to set the session:
-                  req.session.tenant_id = req.ab.tenantID;
+                  // req.session.tenant_id = req.ab.tenantID;
                }
 
                next();

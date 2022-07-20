@@ -20,6 +20,11 @@ const AB = require("ab-utils");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 
+var commonRequest = {};
+// {lookupHash} /* user.uuid : Promise.resolves(User) */
+// A shared lookup hash to reuse the same user lookup when multiple attempts
+// are being attempted in parallel.
+
 /*
  * this is a common req.ab instance for performing user lookups:
  */
@@ -76,23 +81,80 @@ module.exports = (req, res, next) => {
          },
          (done) => {
             // there are several ways a User can be specified:
+            let key = null;
+            let userID = null;
 
             // - session: user_id: {SiteUser.uuid}
             if (req.session && req.session.user_id) {
                req.ab.log("authUser -> session");
-               var userID = req.session.user_id;
-               req.ab.serviceRequest(
-                  "user_manager.user-find",
-                  { uuid: userID },
-                  (err, user) => {
-                     if (err) {
-                        done(err);
-                        return;
-                     }
+               userID = req.session.user_id;
+               key = `${req.ab.tenantID}-${userID}`;
+            }
+
+            // - Relay Header: authorization: 'relay@@@[accessToken]@@@[SiteUser.uuid]'
+            if (req.headers && req.headers["authorization"]) {
+               req.ab.log("authUser -> Relay Auth");
+               let parts = req.headers["authorization"].split("@@@");
+               if (
+                  parts[0] == "relay" &&
+                  parts[1] == sails.config.relay.mcc.accessToken
+               ) {
+                  userID = parts[2];
+                  key = `${req.ab.tenantID}-${userID}`;
+               } else {
+                  // invalid authorization data:
+                  let message =
+                     "api_sails:authUser:Relay Header: Invalid authorization data";
+                  let err = new Error(message);
+                  req.ab.notify.developer(err, {
+                     context: message,
+                     authorization: req.headers["authorization"],
+                  });
+                  // redirect to a Forbidden
+                  return res.forbidden();
+               }
+            }
+
+            if (key) {
+               // make sure we have a Promise that will resolve to
+               // the user created for this userID
+               if (!commonRequest[key]) {
+                  commonRequest[key] = new Promise((resolve, reject) => {
+                     req.ab.serviceRequest(
+                        "user_manager.user-find",
+                        { uuid: userID },
+                        (err, user) => {
+                           if (err) {
+                              reject(err);
+                              return;
+                           }
+                           resolve(user);
+                        }
+                     );
+                  });
+                  commonRequest[key].__count = 0;
+               }
+
+               // now use this Promise and retrieve the user
+               commonRequest[key].__count++;
+               commonRequest[key]
+                  .then((user) => {
                      req.ab.user = user;
+
+                     if (commonRequest[key]) {
+                        req.ab.log(
+                           `authUser -> lookup shared among ${commonRequest[key].__count} requests.`
+                        );
+                        // we can remove the Promise now
+                        delete commonRequest[key];
+                     }
+
                      done(null, user);
-                  }
-               );
+                  })
+                  .catch((err) => {
+                     done(err);
+                  });
+
                return;
             } else {
                // the user is unknown at this point.

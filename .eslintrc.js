@@ -39,9 +39,9 @@ module.exports = {
       // …and any others (e.g. `"Organization": true`)
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    },
-
+   root: true,
    extends: ["eslint:recommended", "prettier"], // extending recommended config and config derived from eslint-config-prettier
-   // plugins: ["prettier"], // activating esling-plugin-prettier (--fix stuff)
+   plugins: ["prettier"], // activating esling-plugin-prettier (--fix stuff)
 
    rules: {
       "prettier/prettier": [
