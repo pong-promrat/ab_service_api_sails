@@ -29,39 +29,8 @@ const AB = require("ab-utils");
 const passport = require("passport");
 const CasStrategy = require("passport-cas2").Strategy;
 
-let passportSession, passportInitialize;
-
-var commonRequest = {};
-// {lookupHash} /* user.uuid : Promise.resolves(User) */
-// A shared lookup hash to reuse the same user lookup when multiple attempts
-// are being attempted in parallel.
-
-
 module.exports = {
-
-   init: () => {
-      /*
-       * this is a common req.ab instance for performing user lookups:
-       */
-      const reqApi = AB.reqApi({}, {});
-      reqApi.jobID = "authUser";
-
-      /*
-       * Passport Initialization:
-       */
-      passport.serializeUser(function (user, done) {
-         done(null, user.uuid);
-      });
-      passport.deserializeUser(function (uuid, done) {
-         reqApi.serviceRequest("user_manager.user-find", { uuid }, (err, user) => {
-            if (err) {
-               done(err);
-               return;
-            }
-            done(null, user);
-         });
-      });
-
+   init: (reqApi) => {
       passport.use(
          new CasStrategy(
             {
@@ -70,7 +39,7 @@ module.exports = {
                sslCert: sails.config.cas.sslCert || null,
                sslKey: sails.config.cas.sslKey || null,
                sslCA: sails.config.cas.sslCA || null,
-               passReqToCallback: true
+               passReqToCallback: true,
             },
             function (req, username, profile, done) {
                // Map the site_user.uuid value from the CAS profile
@@ -93,7 +62,10 @@ module.exports = {
                            { uuid },
                            (err, user) => {
                               if (err) {
-                                 console.warn("Error from user-find", err.message || err);
+                                 console.warn(
+                                    "Error from user-find",
+                                    err.message || err
+                                 );
                                  //ok(err);
                                  ok();
                                  return;
@@ -128,10 +100,13 @@ module.exports = {
                            (w_cb) => {
                               numTries -= 1;
                               if (numTries == 0) {
-                                 w_cb(new Error("Too many tries to create user account"));
-                              }
-                              else {
-                                 w_cb(null, (result == null));
+                                 w_cb(
+                                    new Error(
+                                       "Too many tries to create user account"
+                                    )
+                                 );
+                              } else {
+                                 w_cb(null, result == null);
                               }
                            },
                            // do
@@ -139,16 +114,17 @@ module.exports = {
                               reqApi.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
-                                 { 
-                                    objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
-                                    values:{
+                                 {
+                                    objectID:
+                                       "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
+                                    values: {
                                        uuid,
                                        username,
                                        email,
                                        password: "CAS",
                                        languageCode: language,
-                                       isActive: 1
-                                    }
+                                       isActive: 1,
+                                    },
                                  },
                                  (err, user) => {
                                     // Duplicate user name
@@ -168,7 +144,6 @@ module.exports = {
                                     }
                                  }
                               );
-
                            },
                            // finished
                            (err) => {
@@ -176,7 +151,6 @@ module.exports = {
                               else ok();
                            }
                         );
-
                      },
                   ],
                   (err) => {
@@ -187,91 +161,69 @@ module.exports = {
             }
          )
       );
-
-      passportInitialize = passport.initialize();
-      passportSession = passport.session();
    },
 
-   middleware: (isUserKnown, req, res, next) => {
-      async.series(
-         [
-            (done) => {
-               passportInitialize(req, res, (err) => {
-                  done(err);
-               });
-            },
-            (done) => {
-               passportSession(req, res, (err) => {
-                  done(err);
-               });
-            },
-            (done) => {
-               // Authenticate the unknown user now
-               if (!isUserKnown(req, res, done)) {
-                  if (sails.config.cas.siteURL) {
-                     // Inject the AppBuilder site URL from the config into 
-                     // the headers so that Passport CAS will know where to
-                     // redirect back to.
-                     let siteURL = url.parse(sails.config.cas.siteURL);
-                     req.headers["x-forwarded-proto"] = siteURL.protocol;
-                     req.headers["x-forwarded-host"] = siteURL.host;
-                  }
-                  let auth = passport.authenticate("cas", (err, user, info) => {
-                     // Server errors
-                     if (err) {
-                        res.serverError(err);
-                        req.ab.notify.developer(err, {
-                           context: "CAS authentication (err)",
-                           user, info,
-                        });
-                        return;
-                     }
-                     if (info instanceof Error) {
-                        res.serverError(info);
-                        req.ab.notify.developer(info, {
-                           context: "CAS authentication (info)",
-                           user
-                        });
-                        return;
-                     }
-                     // Authentication failed
-                     if (!user) {
-                        res.unauthorized();
-                        let err = new Error("CAS Auth failed");
-                        req.ab.notify.developer(err, {
-                           context: "CAS authentication failed",
-                           user, info
-                        });
-                        return;
-                     }
+   middleware: (req, res, next) => {
+      // Authenticate the unknown user now
 
-                     // CAS auth succeeded
-                     req.logIn(user, (err) => {
-                        // ... but the site did not?
-                        if (err) {
-                           res.serverError();
-                           req.ab.notify.developer(err, {
-                              context: "Error performing passport.logIn()",
-                              user, info
-                           });
-                           return;
-                        }
-
-                        // Authenticated!
-                        req.session.user_id = user.uuid;
-                        req.session.tenant_id = req.ab.tenantID;
-                        req.ab.user = user;
-                        done();
-                     });
-                  });
-                  auth(req, res, next);
-               }
-            },
-         ],
-         (err) => {
-            next(err);
+      if (sails.config.cas.siteURL) {
+         // Inject the AppBuilder site URL from the config into
+         // the headers so that Passport CAS will know where to
+         // redirect back to.
+         let siteURL = url.parse(sails.config.cas.siteURL);
+         req.headers["x-forwarded-proto"] = siteURL.protocol;
+         req.headers["x-forwarded-host"] = siteURL.host;
+      }
+      let auth = passport.authenticate("cas", (err, user, info) => {
+         // Server errors
+         if (err) {
+            res.serverError(err);
+            req.ab.notify.developer(err, {
+               context: "CAS authentication (err)",
+               user,
+               info,
+            });
+            return;
          }
-      );
-   }
+         if (info instanceof Error) {
+            res.serverError(info);
+            req.ab.notify.developer(info, {
+               context: "CAS authentication (info)",
+               user,
+            });
+            return;
+         }
+         // Authentication failed
+         if (!user) {
+            res.unauthorized();
+            let err = new Error("CAS Auth failed");
+            req.ab.notify.developer(err, {
+               context: "CAS authentication failed",
+               user,
+               info,
+            });
+            return;
+         }
 
+         // CAS auth succeeded
+         req.logIn(user, (err) => {
+            // ... but the site did not?
+            if (err) {
+               res.serverError();
+               req.ab.notify.developer(err, {
+                  context: "Error performing passport.logIn()",
+                  user,
+                  info,
+               });
+               return;
+            }
+
+            // Authenticated!
+            req.session.user_id = user.uuid;
+            req.session.tenant_id = req.ab.tenantID;
+            req.ab.user = user;
+         });
+      });
+      auth(req, res, next);
+   },
 };

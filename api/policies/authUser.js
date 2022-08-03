@@ -20,36 +20,73 @@
 const authCAS = require(__dirname + "/../lib/authUserCAS.js");
 const authLocal = require(__dirname + "/../lib/authUserLocal.js");
 const authOkta = require(__dirname + "/../lib/authUserOkta.js");
-
+const authToken = require(__dirname + "/../lib/authUserToken.js");
+const AB = require("ab-utils");
+const passport = require("passport");
 
 // B. Initializing during Sails.js bootstrap
 // (Global `sails` object is not yet defined)
 // @see api/hooks/initPassport.js
+let passportInitialize, passportSession;
+
 global.AB_AUTHUSER_INIT = (sails) => {
+   /*
+    * this is a common req.ab instance for performing user lookups:
+    */
+   const reqApi = AB.reqApi({}, {});
+   reqApi.jobID = "authUser";
+
+   /*
+    * Passport Initialization:
+    */
+   passport.serializeUser(function (user, done) {
+      done(null, user.uuid);
+   });
+
+   passport.deserializeUser(function (uuid, done) {
+      reqApi.serviceRequest("user_manager.user-find", { uuid }, (err, user) => {
+         if (err) {
+            done(err);
+            return;
+         }
+         done(null, user);
+      });
+   });
+
+   // Add our startegies
    // CAS auth
    if (typeof sails.config.cas == "object" && sails.config.cas.enabled) {
-      authCAS.init();
+      authCAS.init(reqApi);
    }
    // Okta auth
-   else if (typeof sails.config.okta == "object" && sails.config.okta.enabled) {
-      authOkta.init();
+   if (typeof sails.config.okta == "object" && sails.config.okta.enabled) {
+      authOkta.init(reqApi);
    }
    // Local auth (default)
-   else {
-      authLocal.init();
-   }
+   authLocal.init(reqApi);
+   authToken.init(reqApi);
+
+   passportInitialize = passport.initialize();
+   passportSession = passport.session();
 
    // Clean up to reduce global namespace pollution
    delete global.AB_AUTHUSER_INIT;
 };
 
-
 // C. Responding to requests at runtime
-
 var commonRequest = {};
 // {lookupHash} /* user.uuid : Promise.resolves(User) */
 // A shared lookup hash to reuse the same user lookup when multiple attempts
 // are being attempted in parallel.
+
+const tenantOptionsCache = {
+   // {lookupHash} tenantID : options object
+   // Cache of a tenants options so we don't need to request from DB repeatedly
+   //   - If the request has '??' or 'default' tenantID it means the tenant is
+   //     not resolved yet. Use the local login auth with the tenant select.
+   "??": { authType: "login" },
+   default: { authType: "login" },
+};
 
 const isUserKnown = (req, res, next) => {
    // Question: why don't we check req.session.passport.user?
@@ -136,20 +173,51 @@ const isUserKnown = (req, res, next) => {
 
    // User is not authenticated
    return false;
-}
-
-module.exports = (req, res, next) => {
-   // (Global `sails` object is now ready)
-   // CAS auth
-   if (typeof sails.config.cas == "object" && sails.config.cas.enabled) {
-      authCAS.middleware(isUserKnown, req, res, next);
-   }
-   // Okta auth
-   else if (typeof sails.config.okta == "object" && sails.config.okta.enabled) {
-      authOkta.middleware(isUserKnown, req, res, next);
-   }
-   // Local auth (default)
-   else {
-      authLocal.middleware(isUserKnown, req, res, next);
-   }
 };
+
+module.exports = async (req, res, next) => {
+   await waitCallback(passportInitialize, req, res);
+   await waitCallback(passportSession, req, res);
+   const userKnown = isUserKnown(req, res, next);
+   if (userKnown) return; // User is known, so next() was already called
+
+   const validToken = await authToken.middleware(req, res, next);
+   if (validToken) return; // Token was valid, so next() was already called
+
+   // User needs to Authenticate, check tenant settings for authType to use
+   const tenantID = req.ab.tenantID;
+   // If we don't have it cached, request from tenant manager
+   if (!tenantOptionsCache[tenantID]) {
+      const { options } = await new Promise((resolve, reject) => {
+         req.ab.serviceRequest(
+            "tenant_manager.config",
+            { uuid: tenantID },
+            (err, tenant) => {
+               if (err) return reject(err);
+               resolve(tenant);
+            }
+         );
+      });
+      tenantOptionsCache[tenantID] = JSON.parse(options);
+   }
+   const { authType } = tenantOptionsCache[tenantID];
+   // Send the request to authenticatate using the tenant's setting
+   const authMiddlewares = {
+      cas: authCAS.middleware,
+      okta: authOkta.middleware,
+      login: authLocal.middleware,
+   };
+   const authMiddleware = authMiddlewares[authType] ?? authMiddlewares.login;
+   authMiddleware(req, res, next);
+};
+
+/**
+ * Utility - wrap a function with callback in a promise that passes resoves as
+ * the callback
+ * @function waitCallback
+ * @param {function} fn to call with the last arg being a callback
+ * @param {...*} params any param to pass to the fn before the callback
+ */
+function waitCallback(fn, ...params) {
+   return new Promise((resolve) => fn(...params, resolve));
+}

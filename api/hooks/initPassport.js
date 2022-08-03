@@ -7,10 +7,9 @@ const passport = require("passport");
 const abUtilsPolicy = require(__dirname + "/../policies/abUtils.js");
 const tenantPolicy = require(__dirname + "/../policies/authTenant.js");
 
-module.exports = function(sails) {
-
+module.exports = function (sails) {
    return {
-     initialize: async function() {
+      initialize: async function () {
          if (global.AB_AUTHUSER_INIT) {
             global.AB_AUTHUSER_INIT(sails);
          } else {
@@ -23,9 +22,12 @@ module.exports = function(sails) {
          before: {
             // Okta callback route.
             // User is sent here after signing on from the Okta site.
-            "GET /authorization-code/callback": (req, res, next) => {
-               let auth = passport.authenticate("oidc", { failureRedirect: "/okta-error" });
-
+            "GET /authorization-code/callback/:tenant": (req, res) => {
+               const tenant = req.param("tenant");
+               let auth = passport.authenticate("oidc", {
+                  failureRedirect: "/okta-error",
+               });
+               req.session.tenant_id = tenant;
                async.series(
                   [
                      (ok) => {
@@ -36,12 +38,12 @@ module.exports = function(sails) {
                         tenantPolicy(req, res, ok);
                      },
                      (ok) => {
-                        let middleware = passport.initialize();
-                        middleware(req, res, ok);
+                        const initialize = passport.initialize();
+                        initialize(req, res, ok);
                      },
                      (ok) => {
-                        let middleware = passport.session();
-                        middleware(req, res, ok);
+                        const session = passport.session();
+                        session(req, res, ok);
                      },
                      (ok) => {
                         // Finalize Okta auth
@@ -54,7 +56,7 @@ module.exports = function(sails) {
                         req.session.tenant_id = req.ab.tenantID;
                         req.ab.user = req.user;
                         ok();
-                     }
+                     },
                   ],
                   (err) => {
                      if (err) {
@@ -69,14 +71,14 @@ module.exports = function(sails) {
             },
 
             // Okta will redirect here if it gets an error
-            "GET /okta-error": (req, res, next) => {
+            "GET /okta-error": (req, res) => {
                let message = "Okta authentication error";
                let data = {
                   session: req.session,
                   headers: req.headers,
                   url: req.url,
                   user: req.user,
-                  ab: req.ab
+                  ab: req.ab,
                };
                if (req.ab && req.notify) {
                   req.ab.notify.developer(message, data);
@@ -85,9 +87,8 @@ module.exports = function(sails) {
                }
 
                res.forbidden(message);
-            }
-         }
-      }
-
+            },
+         },
+      },
    };
 };

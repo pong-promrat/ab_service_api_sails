@@ -24,45 +24,14 @@
  * }
  *
  */
-const url = require("url");
 const async = require("async");
 const AB = require("ab-utils");
 const passport = require("passport");
 const OktaStrategy = require("passport-openidconnect").Strategy;
-
-let passportSession, passportInitialize;
-
-var commonRequest = {};
-// {lookupHash} /* user.uuid : Promise.resolves(User) */
-// A shared lookup hash to reuse the same user lookup when multiple attempts
-// are being attempted in parallel.
-
+// const { Issuer, Strategy } = require("openid-client");
 
 module.exports = {
-
-   init: () => {
-      /*
-       * this is a common req.ab instance for performing user lookups:
-       */
-      const reqApi = AB.reqApi({}, {});
-      reqApi.jobID = "authUser";
-
-      /*
-       * Passport Initialization:
-       */
-      passport.serializeUser(function (user, done) {
-         done(null, user.uuid);
-      });
-      passport.deserializeUser(function (uuid, done) {
-         reqApi.serviceRequest("user_manager.user-find", { uuid }, (err, user) => {
-            if (err) {
-               done(err);
-               return;
-            }
-            done(null, user);
-         });
-      });
-
+   init: (reqApi) => {
       passport.use(
          "oidc",
          new OktaStrategy(
@@ -73,17 +42,18 @@ module.exports = {
                userInfoURL: `https://${sails.config.okta.domain}/oauth2/default/v1/userinfo`,
                clientID: sails.config.okta.clientID,
                clientSecret: sails.config.okta.clientSecret,
-               callbackURL: `${sails.config.okta.siteURL}/authorization-code/callback`,
-               scope: 'openid profile',
+               // callbackURL: `${sails.config.okta.siteURL}/authorization-code/callback/`,
+               scope: "openid profile",
                skipUserProfile: false,
-               passReqToCallback: true
+               passReqToCallback: true,
             },
             function (req, issuer, profile, done) {
+               console.log("inside now");
                // Username from Okta is the email address
                let email = profile.username;
                // There is also a separate display name
                let username = profile.displayName || email;
-
+               console.log("profile", profile);
                // Result is the final user object that Passport will use
                let result = null;
                reqApi.tenantID = req.ab.tenantID;
@@ -97,7 +67,10 @@ module.exports = {
                            { email },
                            (err, user) => {
                               if (err) {
-                                 console.warn("Error from user-find", err.message || err);
+                                 console.warn(
+                                    "Error from user-find",
+                                    err.message || err
+                                 );
                                  //ok(err);
                                  ok();
                                  return;
@@ -121,10 +94,13 @@ module.exports = {
                            (w_cb) => {
                               numTries -= 1;
                               if (numTries == 0) {
-                                 w_cb(new Error("Too many tries to create user account"));
-                              }
-                              else {
-                                 w_cb(null, (result == null));
+                                 w_cb(
+                                    new Error(
+                                       "Too many tries to create user account"
+                                    )
+                                 );
+                              } else {
+                                 w_cb(null, result == null);
                               }
                            },
                            // do
@@ -132,16 +108,17 @@ module.exports = {
                               reqApi.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
-                                 { 
-                                    objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
-                                    values:{
+                                 {
+                                    objectID:
+                                       "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
+                                    values: {
                                        uuid: AB.uuid(),
                                        username,
                                        email,
                                        password: "Okta",
                                        languageCode: "en",
-                                       isActive: 1
-                                    }
+                                       isActive: 1,
+                                    },
                                  },
                                  (err, user) => {
                                     // Duplicate user name
@@ -161,7 +138,6 @@ module.exports = {
                                     }
                                  }
                               );
-
                            },
                            // finished
                            (err) => {
@@ -169,7 +145,6 @@ module.exports = {
                               else ok();
                            }
                         );
-
                      },
                   ],
                   (err) => {
@@ -180,42 +155,16 @@ module.exports = {
             }
          )
       );
-
-      passportInitialize = passport.initialize();
-      passportSession = passport.session();
    },
+   // Authenticate the unknown user now
+   middleware: (req, res, next) => {
+      const callbackURL = `${sails.config.okta.siteURL}/authorization-code/callback/${req.ab.tenantID}`;
+      // Save the original URL that the user was trying to reach.
+      req.session.okta_original_url = req.url;
+      // Send the user to the Okta site to sign in.
+      let auth = passport.authenticate("oidc", { callbackURL });
+      auth(req, res, next);
 
-   middleware: (isUserKnown, req, res, next) => {
-      async.series(
-         [
-            (done) => {
-               passportInitialize(req, res, (err) => {
-                  done(err);
-               });
-            },
-            (done) => {
-               passportSession(req, res, (err) => {
-                  done(err);
-               });
-            },
-            (done) => {
-               // Authenticate the unknown user now
-               if (!isUserKnown(req, res, done)) {
-                  // Save the original URL that the user was trying to reach.
-                  req.session.okta_original_url = req.url;
-
-                  // Send the user to the Okta site to sign in.
-                  let auth = passport.authenticate("oidc");
-                  auth(req, res, next);
-
-                  // @see api/hooks/initPassport.js :: routes
-               }
-            },
-         ],
-         (err) => {
-            next(err);
-         }
-      );
-   }
-
+      // @see api/hooks/initPassport.js :: routes
+   },
 };

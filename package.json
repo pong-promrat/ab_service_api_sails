@@ -18,6 +18,7 @@
     "passport-cas2": "0.0.12",
     "passport-local": "^1.0.0",
     "passport-openidconnect": "^0.1.1",
+    "passport-unique-token": "^3.0.0",
     "sails": "^1.5.0",
     "sails-hook-grunt": "^5.0.0",
     "sails-hook-orm": "^4.0.0",
