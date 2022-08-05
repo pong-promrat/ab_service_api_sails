@@ -28,7 +28,6 @@ const async = require("async");
 const AB = require("ab-utils");
 const passport = require("passport");
 const OktaStrategy = require("passport-openidconnect").Strategy;
-// const { Issuer, Strategy } = require("openid-client");
 
 module.exports = {
    init: (reqApi) => {
@@ -48,12 +47,10 @@ module.exports = {
                passReqToCallback: true,
             },
             function (req, issuer, profile, done) {
-               console.log("inside now");
                // Username from Okta is the email address
                let email = profile.username;
                // There is also a separate display name
                let username = profile.displayName || email;
-               console.log("profile", profile);
                // Result is the final user object that Passport will use
                let result = null;
                reqApi.tenantID = req.ab.tenantID;
@@ -157,12 +154,12 @@ module.exports = {
       );
    },
    // Authenticate the unknown user now
-   middleware: (req, res, next) => {
-      const callbackURL = `${sails.config.okta.siteURL}/authorization-code/callback/${req.ab.tenantID}`;
+   middleware: (req, res, next, tenantUrl) => {
+      const callbackURL = `${tenantUrl}/authorization-code/callback`;
       // Save the original URL that the user was trying to reach.
       req.session.okta_original_url = req.url;
       // Send the user to the Okta site to sign in.
-      let auth = passport.authenticate("oidc", { callbackURL });
+      const auth = passport.authenticate("oidc", { callbackURL });
       auth(req, res, next);
 
       // @see api/hooks/initPassport.js :: routes

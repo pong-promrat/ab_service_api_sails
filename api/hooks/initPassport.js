@@ -22,12 +22,15 @@ module.exports = function (sails) {
          before: {
             // Okta callback route.
             // User is sent here after signing on from the Okta site.
-            "GET /authorization-code/callback/:tenant": (req, res) => {
-               const tenant = req.param("tenant");
-               let auth = passport.authenticate("oidc", {
+            "GET /authorization-code/callback": (req, res) => {
+               const callbackURL = `${req.baseUrl}/authorization-code/callback`;
+               // This needs to exactly match the callbackURL sent to okta.
+               // Note: req.baseUrl does not include the port number, so you'll
+               // need to add for local testing.
+               const auth = passport.authenticate("oidc", {
+                  callbackURL,
                   failureRedirect: "/okta-error",
                });
-               req.session.tenant_id = tenant;
                async.series(
                   [
                      (ok) => {

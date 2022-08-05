@@ -39,7 +39,7 @@ module.exports = {
    middleware: (req, res, next) => {
       // the user is unknown at this point.
       return new Promise((resolve) => {
-         const auth = passport.authenticate("token", (err, user, info) => {
+         const auth = passport.authenticate("token", (err, user) => {
             if (user) {
                // If the token yielded a valid user we can call next and allow the
                // request. We don't save as user to session with Token Auth.

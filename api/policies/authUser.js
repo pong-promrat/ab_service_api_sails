@@ -200,7 +200,7 @@ module.exports = async (req, res, next) => {
       });
       tenantOptionsCache[tenantID] = JSON.parse(options);
    }
-   const { authType } = tenantOptionsCache[tenantID];
+   const { authType, url } = tenantOptionsCache[tenantID];
    // Send the request to authenticatate using the tenant's setting
    const authMiddlewares = {
       cas: authCAS.middleware,
@@ -208,7 +208,7 @@ module.exports = async (req, res, next) => {
       login: authLocal.middleware,
    };
    const authMiddleware = authMiddlewares[authType] ?? authMiddlewares.login;
-   authMiddleware(req, res, next);
+   authMiddleware(req, res, next, url);
 };
 
 /**
