@@ -163,17 +163,16 @@ module.exports = {
       );
    },
 
-   middleware: (req, res, next) => {
+   middleware: (req, res, next, tenantUrl) => {
       // Authenticate the unknown user now
 
-      if (sails.config.cas.siteURL) {
-         // Inject the AppBuilder site URL from the config into
-         // the headers so that Passport CAS will know where to
-         // redirect back to.
-         let siteURL = url.parse(sails.config.cas.siteURL);
-         req.headers["x-forwarded-proto"] = siteURL.protocol;
-         req.headers["x-forwarded-host"] = siteURL.host;
-      }
+      // Inject the AppBuilder site URL from the config into
+      // the headers so that Passport CAS will know where to
+      // redirect back to.
+      const siteURL = url.parse(tenantUrl);
+      req.headers["x-forwarded-proto"] = siteURL.protocol;
+      req.headers["x-forwarded-host"] = siteURL.host;
+
       let auth = passport.authenticate("cas", (err, user, info) => {
          // Server errors
          if (err) {
