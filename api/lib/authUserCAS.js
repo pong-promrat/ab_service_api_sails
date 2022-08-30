@@ -42,11 +42,10 @@ module.exports = {
                passReqToCallback: true,
             },
             function (req, username, profile, done) {
-               // Map the site_user.uuid value from the CAS profile
-               let uuidKey = sails.config.cas.uuidKey || "id"; // "eaguid"
-               let uuid = profile[uuidKey] || username;
-               if (Array.isArray(uuid)) {
-                  uuid = uuid[0];
+               let authKey = sails.config.cas.uuidKey || "id"; // "eaguid"
+               let authName = profile[authKey] || username;
+               if (Array.isArray(authName)) {
+                  authName = authName[0];
                }
 
                // Result is the final user object that Passport will use
@@ -59,7 +58,7 @@ module.exports = {
                      (ok) => {
                         reqApi.serviceRequest(
                            "user_manager.user-find",
-                           { uuid },
+                           { authname: authName },
                            (err, user) => {
                               if (err) {
                                  console.warn(
@@ -82,12 +81,12 @@ module.exports = {
                         // Skip this step if user already exists
                         if (result) return ok();
 
-                        let email = profile.email || profile.emails || uuid;
+                        let email = profile.defaultmail || profile.email || profile.emails || uuid;
                         if (Array.isArray(email)) {
                            email = email[0];
                         }
 
-                        let language = profile.language || profile.languages;
+                        let language = profile.language || profile.languages || "en";
                         if (Array.isArray(language)) {
                            language = language[0];
                         }
@@ -118,19 +117,24 @@ module.exports = {
                                     objectID:
                                        "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
                                     values: {
-                                       uuid,
+                                       // Generate a new random UUID.
+                                       // Can't put authname here because
+                                       // AppBuilder needs it to follow a
+                                       // standard format.
+                                       uuid: AB.uuid(),
                                        username,
                                        email,
                                        password: "CAS",
                                        languageCode: language,
                                        isActive: 1,
+                                       authname: authName
                                     },
                                  },
                                  (err, user) => {
                                     // Duplicate user name
                                     if (err && err.code == "ER_DUP_ENTRY") {
                                        // Change username and try again
-                                       username = `${uuid}-${AB.uuid()}`;
+                                       username = `${username}-${AB.uuid()}`;
                                        d_cb();
                                     }
                                     // Some other error
@@ -201,6 +205,7 @@ module.exports = {
                user,
                info,
             });
+            res.serverError(err);
             return;
          }
 
@@ -222,6 +227,8 @@ module.exports = {
             req.session.tenant_id = req.ab.tenantID;
             req.ab.user = user;
          });
+
+         next();
       });
       auth(req, res, next);
    },
