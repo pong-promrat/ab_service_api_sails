@@ -58,7 +58,7 @@ module.exports = {
                      (ok) => {
                         reqApi.serviceRequest(
                            "user_manager.user-find",
-                           { authname },
+                           { authname: authName },
                            (err, user) => {
                               if (err) {
                                  console.warn(
@@ -127,7 +127,7 @@ module.exports = {
                                        password: "CAS",
                                        languageCode: language,
                                        isActive: 1,
-                                       authname
+                                       authname: authName
                                     },
                                  },
                                  (err, user) => {
