@@ -205,6 +205,7 @@ module.exports = {
                user,
                info,
             });
+            res.serverError(err);
             return;
          }
 
@@ -226,6 +227,8 @@ module.exports = {
             req.session.tenant_id = req.ab.tenantID;
             req.ab.user = user;
          });
+
+         next();
       });
       auth(req, res, next);
    },
