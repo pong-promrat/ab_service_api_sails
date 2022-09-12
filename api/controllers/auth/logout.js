@@ -32,7 +32,7 @@ module.exports = function (req, res) {
             sslCA: sails.config.cas.sslCA || null,
             passReqToCallback: true,
          });
-         cas.logout(req, res, req.tenantUrl);
+         cas.logout(req, res, req.ab.param("tenantUrl"));
       } else {
          req.logout();
       }
