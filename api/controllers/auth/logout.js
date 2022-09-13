@@ -24,7 +24,7 @@ module.exports = function (req, res) {
    if (req.logout) {
       req.logout();
       if (sails.config.cas.enabled) {
-         res.redirect(
+         return res.redirect(
             `${sails.config.cas.baseURL}/logout?service=${req.ab.param(
                "tenantUrl"
             )}`
