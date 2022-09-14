@@ -68,7 +68,7 @@ module.exports = function (req, res) {
    try {
       switch (state) {
          case 0:
-            fs.writeFileSync(filename, data || "");
+            fs.writeFileSync(filename, data ?? "");
 
             res.ab.success({});
 
