@@ -71,7 +71,12 @@ module.exports = function (req, res) {
    // verify that the request is from a socket not a normal HTTP
    if (req.isSocket) {
       // Subscribe socket to a room with the name of the object's ID
-      sails.sockets.join(req, req.ab.socketKey(jobData.objectID));
+      // Join room for each role so that user only recieves data for their scope.
+      const roles = req.ab.user.SITE_ROLE ?? [];
+      roles.forEach((role) => {
+         const roomKey = `${jobData.objectID}-${role}`;
+         sails.sockets.join(req, req.ab.socketKey(roomKey));
+      });
    }
 
    // pass the request off to the uService:
