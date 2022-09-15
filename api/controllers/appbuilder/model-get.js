@@ -74,7 +74,7 @@ module.exports = function (req, res) {
       // Join room for each role so that user only recieves data for their scope.
       const roles = req.ab.user.SITE_ROLE ?? [];
       roles.forEach((role) => {
-         const roomKey = `${jobData.objectID}-${role}`;
+         const roomKey = `${jobData.objectID}-${role.uuid}`;
          sails.sockets.join(req, req.ab.socketKey(roomKey));
       });
    }
