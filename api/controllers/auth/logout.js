@@ -23,6 +23,13 @@ module.exports = function (req, res) {
    // passport session logout feature:
    if (req.logout) {
       req.logout();
+      if (sails.config.cas.enabled) {
+         res.redirect(
+            `${sails.config.cas.baseURL}/logout?service=${req.ab.param(
+               "tenantUrl"
+            )}`
+         );
+      }
    }
 
    res.ab.success({});
