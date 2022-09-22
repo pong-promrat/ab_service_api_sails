@@ -153,12 +153,9 @@ module.exports = {
 
             (done) => {
                // default to "en" labels
-               var langCode = "en";
-               if (req.ab.user) {
-                  langCode = req.ab.user.languageCode;
-               }
+               const langCode = req.ab.user?.languageCode ?? "en";
 
-               var jobData = {
+               const jobData = {
                   languageCode: langCode,
                };
                req.ab.log("label job data:", jobData);
