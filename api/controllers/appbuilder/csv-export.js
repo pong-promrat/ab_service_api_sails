@@ -31,6 +31,7 @@ module.exports = function (req, res) {
    // create a new job for the service
    let jobData = {
       viewID: req.ab.param("viewID"),
+      longRequest: true,
    };
 
    if (req.ab.param("where")) {
