@@ -12,6 +12,11 @@ module.exports = {
    //    res.ab.success({ done: true });
    // },
 
+   index: function (req, res) {
+      // NGinx well send index.html from /home, but we go through sails for Authentication
+      return res.redirect("/home");
+   },
+
    /*
     * get /favicon.ico
     * determine which tenant's favicon.ico to return.
