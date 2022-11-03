@@ -68,6 +68,7 @@ module.exports = function (req, res) {
       connection.connect();
 
       // NOTE: for streaming, do not send a callback
+      req.ab.log(`appbuilder.csv-export: query to DB ${results.SQL}`);
       let query = connection.query(results.SQL);
 
       let hasErrored = false;
