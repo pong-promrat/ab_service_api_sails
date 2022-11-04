@@ -23,14 +23,17 @@ module.exports = function (req, res) {
    // passport session logout feature:
    if (req.logout) {
       req.logout();
-      if (sails.config.cas.enabled) {
-         res.redirect(
-            `${sails.config.cas.baseURL}/logout?service=${req.ab.param(
-               "tenantUrl"
-            )}`
-         );
-      }
    }
 
-   res.ab.success({});
+   // if cas is enabled we have to also log out of cas so pass a redirect link
+   // that the frontend will follow after successfully loging out locally
+   if (sails.config.cas.enabled) {
+      res.ab.success({
+         redirect: `${sails.config.cas.baseURL}/logout?service=${req.ab.param(
+            "tenantUrl"
+         )}`,
+      });
+   } else {
+      res.ab.success({});
+   }
 };

@@ -86,6 +86,9 @@ function submitJob(req, objectID, values) {
       let jobData = {
          objectID,
          values,
+         // NOTE: When there are a lot of inserting row, then It will take more time to response.
+         // Set .longRequest to avoid timeout error.
+         longRequest: true,
          // relocate the rest of the params as .values
       };
 
