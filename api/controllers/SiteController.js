@@ -5,59 +5,16 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const async = require("async");
-const path = require("path");
-
-var hashTitles = {
-   /* tenant.uuid : tenant.options.title */
-};
 
 module.exports = {
    // labelMissing: function (req, res) {
    //    console.log("!!!! LabelMissing !!!!");
    //    res.ab.success({ done: true });
    // },
-   /**
-    * get /
-    * in cases where we are not embedded in another webpage, we can
-    * return a default HTML container to load the AppBuilder in.
-    */
-   index: async function (req, res) {
-      // req.ab.log("req.ab", req.ab);
-      var title = "";
-      if (hashTitles[req.ab.tenantID]) {
-         title = hashTitles[req.ab.tenantID];
-      }
-      var tenantID = "";
-      // {string} tenantID
-      // the default tenantID the loaded AB_Runtime should be working with
 
-      // if a tenant is set from our policies:
-      if (req.ab.tenantSet()) {
-         tenantID = `appbuilder-tenant="${req.ab.tenantID}"`;
-      }
-      // if a tenantID was set due to our route:  get /admin
-      // then include that here (override the policies)
-      if (req.options.useTenantID) {
-         tenantID = `appbuilder-tenant="${sails.config.tenant_manager.siteTenantID}"`;
-      }
-
-      // defaultView specifies which portal_* view to default to.
-      // normally it should show up in the work view
-      let defaultView = `appbuilder-view="work"`;
-      if (!req.ab.user) {
-         // unless we are not logged in. then we show the login form:
-         defaultView = `appbuilder-view="auth_login_form"`;
-      }
-      if (req.session?.defaultView) {
-         defaultView = req.session.defaultView;
-         req.ab.log(">>> PULLING Default View from Session");
-      }
-
-      res.view(
-         // path to template: "views/site/index.ejs",
-         { title, v: "2", layout: false, tenantID, defaultView }
-      );
-      return;
+   index: function (req, res) {
+      // NGinx well send index.html from /home, but we go through sails for Authentication
+      return res.redirect("/home");
    },
 
    /*
@@ -73,21 +30,6 @@ module.exports = {
       }
       console.log("/favicon.ico : resolving to :" + url);
       res.redirect(url);
-   },
-
-   /*
-    * get /sails.io.js
-    * return our common sails.io library.
-    */
-   sailsio: function (req, res) {
-      var options = {
-         root: path.join(__dirname, "..", "..", "assets", "dependencies"),
-      };
-      res.sendFile("sails.io.js", options, (err) => {
-         if (err) {
-            console.error(err);
-         }
-      });
    },
 
    /*

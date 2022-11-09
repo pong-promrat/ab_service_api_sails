@@ -31,6 +31,7 @@ module.exports = function (req, res) {
    // create a new job for the service
    let jobData = {
       viewID: req.ab.param("viewID"),
+      longRequest: true,
    };
 
    if (req.ab.param("where")) {
@@ -67,6 +68,7 @@ module.exports = function (req, res) {
       connection.connect();
 
       // NOTE: for streaming, do not send a callback
+      req.ab.log(`appbuilder.csv-export: query to DB ${results.SQL}`);
       let query = connection.query(results.SQL);
 
       let hasErrored = false;
