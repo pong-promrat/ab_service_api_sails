@@ -53,7 +53,7 @@ global.AB_AUTHUSER_INIT = (sails) => {
       });
    });
 
-   // Add our startegies
+   // Add our strategies
    // CAS auth
    if (typeof sails.config.cas == "object" && sails.config.cas.enabled) {
       authCAS.init(reqApi);
