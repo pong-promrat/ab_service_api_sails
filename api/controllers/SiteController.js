@@ -282,7 +282,14 @@ module.exports = {
                      settings["appbuilder-view"] = "auth_login_form";
                   }
                   if (req.session?.defaultView) {
-                     settings["appbuilder-view"] = req.session.defaultView;
+                     let sessionView = req.session.defaultView;
+                     if (/appbuilder-view="(.+)"/.test(sessionView)) {
+                        sessionView = sessionView.match(
+                           /appbuilder-view="(.+)"/
+                        )[1];
+                     }
+
+                     settings["appbuilder-view"] = sessionView;
                      req.ab.log(">>> PULLING Default View from Session");
                   }
 
