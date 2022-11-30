@@ -273,7 +273,6 @@ module.exports = {
                      : req.ab.tenantSet() //Tenant set from policies
                      ? req.ab.tenantID
                      : "";
-                  settings["appbuilder-view"];
                   // defaultView specifies which portal_* view to default to.
                   // normally it should show up in the work view
                   settings["appbuilder-view"] = "work";
