@@ -265,6 +265,27 @@ module.exports = {
                   });
                })
                .then(() => {
+                  // Hotfix 11/30/22 These settings used to be added to our
+                  // index.html but now we send that statically.
+                  const settings = {};
+                  settings["appbuilder-tenant"] = req.options.useTenantID //tenantID was set due to our route: get /admin
+                     ? sails.config.tenant_manager.siteTenantID
+                     : req.ab.tenantSet() //Tenant set from policies
+                     ? req.ab.tenantID
+                     : "";
+                  settings["appbuilder-view"];
+                  // defaultView specifies which portal_* view to default to.
+                  // normally it should show up in the work view
+                  settings["appbuilder-view"] = "work";
+                  if (!req.ab.user) {
+                     // unless we are not logged in. then we show the login form:
+                     settings["appbuilder-view"] = "auth_login_form";
+                  }
+                  if (req.session?.defaultView) {
+                     settings["appbuilder-view"] = req.session.defaultView;
+                     req.ab.log(">>> PULLING Default View from Session");
+                  }
+
                   res.ab.success({
                      inbox: configInbox,
                      inboxMeta: configInboxMeta,
@@ -273,6 +294,7 @@ module.exports = {
                      tenant: configTenant,
                      user: configUser,
                      meta: configMeta,
+                     settings,
                   });
                })
                .catch((err) => {
