@@ -127,7 +127,8 @@ module.exports = {
                                        password: "CAS",
                                        languageCode: language,
                                        isActive: 1,
-                                       authname: authName
+                                       authname: authName,
+                                       longRequest: true // for ABServiceRequest
                                     },
                                  },
                                  (err, user) => {
