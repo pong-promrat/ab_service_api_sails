@@ -62,7 +62,6 @@ module.exports = {
       var configSite = {
          relay: sails.config.relay?.enable ?? false,
       };
-      console.log("configSite", configSite);
       // {obj} configSite
       // The information details for this site, used by the WEB platform to
       // process it's operation:
@@ -299,6 +298,7 @@ module.exports = {
                      site: configSite,
                      tenant: configTenant,
                      user: configUser,
+                     userReal: req.ab.isSwitcherood()? req.ab.userReal : 0,
                      meta: configMeta,
                      settings,
                   });
