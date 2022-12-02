@@ -108,14 +108,14 @@ module.exports = {
                                  {
                                     objectID:
                                        "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
+                                    longRequest: true, // for ABServiceRequest
                                     values: {
                                        uuid: AB.uuid(),
                                        username,
                                        email,
                                        password: "Okta",
                                        languageCode: "en",
-                                       isActive: 1,
-                                       longRequest: true // for ABServiceRequest
+                                       isActive: 1
                                     },
                                  },
                                  (err, user) => {
