@@ -116,6 +116,7 @@ module.exports = {
                                  {
                                     objectID:
                                        "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
+                                    longRequest: true // for ABServiceRequest
                                     values: {
                                        // Generate a new random UUID.
                                        // Can't put authname here because
@@ -127,8 +128,7 @@ module.exports = {
                                        password: "CAS",
                                        languageCode: language,
                                        isActive: 1,
-                                       authname: authName,
-                                       longRequest: true // for ABServiceRequest
+                                       authname: authName
                                     },
                                  },
                                  (err, user) => {
