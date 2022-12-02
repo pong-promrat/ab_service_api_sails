@@ -115,6 +115,7 @@ module.exports = {
                                        password: "Okta",
                                        languageCode: "en",
                                        isActive: 1,
+                                       longRequest: true // for ABServiceRequest
                                     },
                                  },
                                  (err, user) => {
