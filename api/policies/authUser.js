@@ -55,11 +55,11 @@ global.AB_AUTHUSER_INIT = (sails) => {
 
    // Add our strategies
    // CAS auth
-   if (typeof sails.config.cas == "object" && sails.config.cas.enabled) {
+   if (typeof sails.config.cas == "object" && sails.config.cas?.enabled) {
       authCAS.init(reqApi);
    }
    // Okta auth
-   if (typeof sails.config.okta == "object" && sails.config.okta.enabled) {
+   if (typeof sails.config.okta == "object" && sails.config.okta?.enabled) {
       authOkta.init(reqApi);
    }
    // Local auth (default)
