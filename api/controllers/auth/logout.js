@@ -27,7 +27,7 @@ module.exports = function (req, res) {
 
    // if cas is enabled we have to also log out of cas so pass a redirect link
    // that the frontend will follow after successfully loging out locally
-   if (sails.config.cas.enabled) {
+   if (sails.config.cas?.enabled) {
       res.ab.success({
          redirect: `${sails.config.cas.baseURL}/logout?service=${req.ab.param(
             "tenantUrl"
