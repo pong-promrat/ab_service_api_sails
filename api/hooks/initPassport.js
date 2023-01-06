@@ -6,6 +6,7 @@ const async = require("async");
 const passport = require("passport");
 const abUtilsPolicy = require(__dirname + "/../policies/abUtils.js");
 const tenantPolicy = require(__dirname + "/../policies/authTenant.js");
+const authLogger = require("../lib/authLogger.js");
 
 module.exports = function (sails) {
    return {
@@ -69,10 +70,12 @@ module.exports = function (sails) {
                      if (err) {
                         console.error("Failed to authenticate user", err);
                         res.serverError(err);
+                        authLogger(req, "Okta auth error?");
                         return;
                      }
                      // Send the user to where they originally requested
                      res.redirect(req.session.okta_original_url || "/");
+                     authLogger(req, "Okta auth successful");
                   }
                );
             },

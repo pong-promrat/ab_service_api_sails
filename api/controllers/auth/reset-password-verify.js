@@ -6,6 +6,7 @@
  * header:  X-CSRF-Token : [token]
  * params:
  */
+const authLogger = require("../../lib/authLogger.js");
 
 var inputParams = {
    t: { string: true, required: true }, // tenant ID
@@ -49,11 +50,14 @@ module.exports = async function (req, res) {
 
       // redirect to our base url
       res.redirect("/");
+      authLogger(req, "Password reset token successful");
    } catch (err) {
       if (err.code == "EUNKNOWNTOKEN") {
+         authLoogger(req, "Password reset token FAILED");
          return res.notFound();
       }
       res.ab.error(err);
+      authLogger(req, "Password reset token error");
    }
 };
 

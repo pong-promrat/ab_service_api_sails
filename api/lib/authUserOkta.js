@@ -1,4 +1,4 @@
-/*
+/**
  * authUser (CAS)
  * attempt to resolve which user this route is trying to work with.
  * When this step is completed, there should be 1 of 3 conditions:

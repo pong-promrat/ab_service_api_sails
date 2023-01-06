@@ -1,4 +1,4 @@
-/*
+/**
  * authUser (CAS)
  * attempt to resolve which user this route is trying to work with.
  * When this step is completed, there should be 1 of 3 conditions:
@@ -28,6 +28,7 @@ const async = require("async");
 const AB = require("ab-utils");
 const passport = require("passport");
 const CasStrategy = require("passport-cas2").Strategy;
+const authLogger = require("./authLogger.js");
 
 module.exports = {
    init: (reqApi) => {
@@ -187,6 +188,7 @@ module.exports = {
                user,
                info,
             });
+            authLogger(req, "CAS auth error");
             return;
          }
          if (info instanceof Error) {
@@ -195,6 +197,7 @@ module.exports = {
                context: "CAS authentication (info)",
                user,
             });
+            authLogger(req, "CAS auth error");
             return;
          }
          // Authentication failed
@@ -207,6 +210,7 @@ module.exports = {
                info,
             });
             res.serverError(err);
+            authLogger(req, "CAS auth error");
             return;
          }
 
@@ -220,6 +224,7 @@ module.exports = {
                   user,
                   info,
                });
+               authLogger(req, "CAS auth error?");
                return;
             }
 
@@ -230,6 +235,7 @@ module.exports = {
          });
 
          next();
+         authLogger(req, "CAS auth successful");
       });
       auth(req, res, next);
    },
