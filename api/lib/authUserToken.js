@@ -49,7 +49,9 @@ module.exports = {
                authLogger(req, "Token auth successful");
                return resolve(true);
             }
-            authLogger(req, "Token auth FAILED");
+            if (err?.code === "EUNKNOWNTOKEN") {
+               authLogger(req, "Token auth FAILED");
+            }
             return resolve(false);
          });
          auth(req, res, next);
