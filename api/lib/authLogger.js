@@ -15,12 +15,16 @@ const LOG_FILE_PATH = "/var/log/appbuilder_auth.log";
  *     state the auth method.
  */
 module.exports = async function authLogger(req, message) {
-   const ip = req.headers["x-forwarded-for"] 
+   const timestamp = new Date().toISOString();
+   const file = await fs.open(LOG_FILE_PATH, "a");
+   let ip = req.headers["x-forwarded-for"] 
       || req.headers["x-real-ip"]
       || req.connection?.remoteAddress
       || req.ip;
-   const timestamp = new Date().toLocaleString("en-CA"); // y-m-d
-   const file = await fs.open(LOG_FILE_PATH, "a");
-   await file.write(`${timestamp}:\t[${ip}]\t${message}\n`);
+   if (ip.includes(",")) {
+      // Ignore anything after a comma
+      ip = ip.replace(/,.+/, "");
+   }
+   await file.write(`${timestamp}  [${ip}]  ${message}\n`);
    await file.close();
 }
