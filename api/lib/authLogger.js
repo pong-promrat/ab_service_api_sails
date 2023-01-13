@@ -1,6 +1,6 @@
 const fs = require("fs").promises;
 
-// This is log file location within the ab_service_api_sails container
+// This is the log file location within the ab_service_api_sails container
 const LOG_FILE_PATH = "/var/log/appbuilder/auth.log";
 
 /**
