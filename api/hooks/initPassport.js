@@ -68,9 +68,11 @@ module.exports = function (sails) {
                   ],
                   (err) => {
                      if (err) {
-                        console.error("Failed to authenticate user", err);
                         res.serverError(err);
                         authLogger(req, "Okta auth error?");
+                        req.ab.notify.developer(err, {
+                           context: "Failed to authenticate user"
+                        });
                         return;
                      }
                      // Send the user to where they originally requested
@@ -90,7 +92,7 @@ module.exports = function (sails) {
                   user: req.user,
                   ab: req.ab,
                };
-               if (req.ab && req.notify) {
+               if (req.ab?.notify) {
                   req.ab.notify.developer(message, data);
                } else {
                   console.error(message, data);

@@ -62,12 +62,12 @@ module.exports = {
                            { authname: authName },
                            (err, user) => {
                               if (err) {
-                                 console.warn(
-                                    "Error from user-find",
-                                    err.message || err
-                                 );
                                  //ok(err);
                                  ok();
+                                 req.ab.notify.developer(err, {
+                                    context: "Error from user-find",
+                                    authName
+                                 });
                                  return;
                               }
                               if (user) {
@@ -183,34 +183,33 @@ module.exports = {
          // Server errors
          if (err) {
             res.serverError(err);
+            authLogger(req, "CAS auth error");
             req.ab.notify.developer(err, {
                context: "CAS authentication (err)",
                user,
                info,
             });
-            authLogger(req, "CAS auth error");
             return;
          }
          if (info instanceof Error) {
             res.serverError(info);
+            authLogger(req, "CAS auth error");
             req.ab.notify.developer(info, {
                context: "CAS authentication (info)",
                user,
             });
-            authLogger(req, "CAS auth error");
             return;
          }
          // Authentication failed
          if (!user) {
-            res.unauthorized();
             let err = new Error("CAS Auth failed");
+            res.serverError(err);
+            authLogger(req, "CAS auth error");
             req.ab.notify.developer(err, {
                context: "CAS authentication failed",
                user,
                info,
             });
-            res.serverError(err);
-            authLogger(req, "CAS auth error");
             return;
          }
 
@@ -219,12 +218,12 @@ module.exports = {
             // ... but the site did not?
             if (err) {
                res.serverError();
+               authLogger(req, "CAS auth error?");
                req.ab.notify.developer(err, {
                   context: "Error performing passport.logIn()",
                   user,
                   info,
                });
-               authLogger(req, "CAS auth error?");
                return;
             }
 

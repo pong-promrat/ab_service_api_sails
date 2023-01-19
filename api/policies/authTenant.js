@@ -100,7 +100,6 @@ module.exports = (req, res, next) => {
                   req.ab.log(
                      "authTenant ==> found tenant id: " + req.ab.tenantID
                   );
-                  console.log(req.session);
                   // req.session = req.session || {};
 
                   // be sure to set the session:
@@ -117,7 +116,7 @@ module.exports = (req, res, next) => {
          next();
       }
    } else {
-      console.log("No hostname??");
+      req.ab.log("No hostname??");
       next();
    }
 };

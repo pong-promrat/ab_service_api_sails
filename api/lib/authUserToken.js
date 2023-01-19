@@ -18,7 +18,7 @@ module.exports = {
          new UniqueTokenStrategy(
             { passReqToCallback: true, tokenHeader: "user-token" },
             (req, token, done) => {
-               console.log("Verify token", token);
+               //console.log("Verify token", token);
                if (!token) return done();
                reqApi.tenantID = req.ab.tenantID;
                reqApi.serviceRequest(

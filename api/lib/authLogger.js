@@ -31,8 +31,6 @@ module.exports = async function authLogger(req, message) {
    }
    // Maybe the /var/log/appbuilder/ directory wasn't mounted in?
    catch (err) {
-      console.log("authlogger: ", message);
-      console.error(err);
       req.ab.notify.developer(err, {
          context: "authLogger",
          LOG_FILE_PATH,
