@@ -1,4 +1,4 @@
-/*
+/**
  * authUser (CAS)
  * attempt to resolve which user this route is trying to work with.
  * When this step is completed, there should be 1 of 3 conditions:
@@ -64,10 +64,10 @@ module.exports = {
                            { email },
                            (err, user) => {
                               if (err) {
-                                 console.warn(
-                                    "Error from user-find",
-                                    err.message || err
-                                 );
+                                 req.ab.notify.developer(err, {
+                                    context: "Error from user-find",
+                                    email
+                                 });
                                  //ok(err);
                                  ok();
                                  return;

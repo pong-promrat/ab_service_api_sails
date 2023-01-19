@@ -1,4 +1,4 @@
-/*
+/**
  * authUserToken
  *
  * Looks for a "user-token" in the request header and checks if the provided
@@ -9,6 +9,7 @@
  */
 const passport = require("passport");
 const { UniqueTokenStrategy } = require("passport-unique-token");
+const authLogger = require("./authLogger.js");
 
 module.exports = {
    init: (reqApi) => {
@@ -17,7 +18,7 @@ module.exports = {
          new UniqueTokenStrategy(
             { passReqToCallback: true, tokenHeader: "user-token" },
             (req, token, done) => {
-               console.log("Verify token", token);
+               //console.log("Verify token", token);
                if (!token) return done();
                reqApi.tenantID = req.ab.tenantID;
                reqApi.serviceRequest(
@@ -45,7 +46,11 @@ module.exports = {
                // request. We don't save as user to session with Token Auth.
                req.ab.user = user;
                next();
+               authLogger(req, "Token auth successful");
                return resolve(true);
+            }
+            if (err?.code === "EUNKNOWNTOKEN") {
+               authLogger(req, "Token auth FAILED");
             }
             return resolve(false);
          });

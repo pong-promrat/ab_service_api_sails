@@ -6,6 +6,7 @@
  * header:  X-CSRF-Token : [token]
  * params:
  */
+const authLogger = require("../../lib/authLogger.js");
 
 var inputParams = {
    email: { string: { email: { allowUnicode: true } }, required: true },
@@ -50,7 +51,15 @@ module.exports = function (req, res) {
       (err, results) => {
          if (err) {
             res.ab.error(err);
+            authLogger(req, "Password reset email error");
             return;
+         }
+         // If email address could not be found, log the failure but don't
+         // tell the user so they can't use this to fish for valid emails.
+         else if (results?.code == "ENOTFOUND") {
+            delete results.code;
+            authLogger(req, "Password reset email FAILED");
+            // continue normally?
          }
          res.ab.success(results);
       }

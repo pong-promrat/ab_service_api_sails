@@ -1,4 +1,4 @@
-/*
+/**
  * authUser
  * attempt to resolve which user this route is trying to work with.
  * When this step is completed, there should be 1 of 3 conditions:
@@ -21,6 +21,7 @@ const authCAS = require(__dirname + "/../lib/authUserCAS.js");
 const authLocal = require(__dirname + "/../lib/authUserLocal.js");
 const authOkta = require(__dirname + "/../lib/authUserOkta.js");
 const authToken = require(__dirname + "/../lib/authUserToken.js");
+const authLogger = require(__dirname + "/../lib/authLogger.js");
 const AB = require("ab-utils");
 const passport = require("passport");
 
@@ -113,6 +114,7 @@ const isUserKnown = (req, res, next) => {
       ) {
          userID = parts[2];
          key = `${req.ab.tenantID}-${userID}`;
+         authLogger(req, "Relay auth successful");
       } else {
          // invalid authorization data:
          let message =
@@ -122,6 +124,7 @@ const isUserKnown = (req, res, next) => {
             context: message,
             authorization: req.headers["authorization"],
          });
+         authLogger(req, "Relay auth FAILED");
          // redirect to a Forbidden
          return res.forbidden();
       }

@@ -8,6 +8,8 @@
  * return:  { user }
  * params:
  */
+const authLogger = require("../../lib/authLogger.js");
+
 var inputParams = {
    email: { string: { email: true }, required: true },
    password: { string: true, required: true },
@@ -46,12 +48,14 @@ module.exports = function (req, res) {
          if (err) {
             req.ab.log("error logging in:", err);
             res.ab.error(err, 401);
+            authLogger(req, "Local auth FAILED");
             return;
          }
          req.ab.log("successful auth/login");
          req.session.tenant_id = req.ab.tenantID;
          req.session.user_id = user.uuid;
          res.ab.success({ user });
+         authLogger(req, "Local auth successful");
       }
    );
 };
