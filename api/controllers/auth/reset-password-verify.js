@@ -53,7 +53,7 @@ module.exports = async function (req, res) {
       authLogger(req, "Password reset token successful");
    } catch (err) {
       if (err.code == "EUNKNOWNTOKEN") {
-         authLoogger(req, "Password reset token FAILED");
+         authLogger(req, "Password reset token FAILED");
          return res.notFound();
       }
       res.ab.error(err);
