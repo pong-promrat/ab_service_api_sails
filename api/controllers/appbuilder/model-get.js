@@ -85,8 +85,18 @@ module.exports = function (req, res) {
       sails.sockets.join(req, userRoom);
    }
 
+   const options = {};
+   // if populate == true, then this might take longer, so mark this as a 
+   // longRequest
+   // NOTE: only do this on a generic populate = true.  those can end up 
+   // gathering ALOT of data.  if this is a limited populate = [ 'field', ... ] 
+   // this is probably not necessary
+   if (jobData.cond.populate === true || jobData.cond.populate === "true") {
+      options.longRequest = true;
+   }
+
    // pass the request off to the uService:
-   req.ab.serviceRequest("appbuilder.model-get", jobData, (err, results) => {
+   req.ab.serviceRequest("appbuilder.model-get", jobData, options, (err, results) => {
       if (err) {
          req.ab.log("api_sails:model-get:error:", err);
          res.ab.error(err);
