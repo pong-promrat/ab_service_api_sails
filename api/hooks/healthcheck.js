@@ -45,6 +45,78 @@ const servicesToPing = [
    "notification_email"
 ];
 
+// This provides the req.ab.* methods.
+const utilPolicy = require("../policies/abUtils.js");
+
+/**
+ * The healthcheck endpoint handler.
+ * "GET /healthcheck"
+ * 
+ * @param {HTTPRequest} req
+ * @param {HTTPResponse} res
+ */
+const healthcheck = function(req, res) {
+   let pings = [];
+   let results = {
+   /*
+      <service>: { 
+         isHealthy: <boolean>,
+         message: <string>,
+         startTime: <Date>,
+         endTime: <Date>,
+         msElapsed: <int>
+      },
+      ...
+   */
+   };
+   let statusCode = 200;
+
+   servicesToPing.forEach((service) => {
+      results[service] = {
+         isHealthy: null,
+         message: null,
+         startTime: new Date(),
+         endTime: null,
+         msElapsed: null
+      };
+      // Ping all services in parallel
+      pings.push(new Promise((resolve) => {
+         let pingResponse = results[service];
+         req.ab.serviceRequest(
+            `${service}.healthcheck`,
+            {},
+            (err, data = "") => {
+               pingResponse.endTime = new Date();
+               pingResponse.msElapsed = pingResponse.endTime - pingResponse.startTime;
+               if (err) {
+                  pingResponse.isHealthy = false;
+                  pingResponse.message = err.message || err;
+                  // 207 Multi-Status: some services are not OK
+                  statusCode = 207;
+               } else {
+                  pingResponse.isHealthy = true;
+                  pingResponse.message = data;
+               }
+               resolve();
+            }
+         );
+      }));
+   });
+
+   Promise.all(pings)
+      .then(() => {
+         res.status(statusCode).json(results);
+      })
+      .catch((err) => {
+         // This should only happen if there's an error in api_sails
+         req.ab.error("Error while running healthcheck");
+         req.ab.error(err);
+         req.ab.log(results);
+         res.serverError(err);
+      });   
+}
+
+
 module.exports = function (sails) {
    return {
       routes: {
@@ -52,64 +124,10 @@ module.exports = function (sails) {
          before: {
 
             "GET /healthcheck": (req, res) => {
-               let pings = [];
-               let results = {
-               /*
-                  <service>: { 
-                     isHealthy: <boolean>,
-                     message: <string>,
-                     startTime: <Date>,
-                     endTime: <Date>,
-                     msElapsed: <int>
-                  },
-                  ...
-               */
-               };
-               let statusCode = 200;
-
-               servicesToPing.forEach((service) => {
-                  results[service] = {
-                     isHealthy: null,
-                     message: null,
-                     startTime: new Date(),
-                     endTime: null,
-                     msElapsed: null
-                  };
-                  // Ping all services in parallel
-                  pings.push(new Promise((resolve) => {
-                     let pingResponse = results[service];
-                     req.ab.serviceRequest(
-                        `${service}.healthcheck`,
-                        {},
-                        (err, data = "") => {
-                           pingResponse.endTime = new Date();
-                           pingResponse.msElapsed = pingResponse.endTime - pingResponse.startTime;
-                           if (err) {
-                              pingResponse.isHealthy = false;
-                              pingResponse.message = err.message || err;
-                              // 207 Multi-Status: some services are not OK
-                              statusCode = 207;
-                           } else {
-                              pingResponse.isHealthy = true;
-                              pingResponse.message = data;
-                           }
-                           resolve();
-                        }
-                     );
-                  }));
+               // Manually invoke the AB utils policy
+               utilPolicy(req, res, () => {
+                  healthcheck(req, res);
                });
-
-               Promise.all(pings)
-                  .then(() => {
-                     res.status(statusCode).json(results);
-                  })
-                  .catch((err) => {
-                     // This should only happen if there's an error in api_sails
-                     req.ab.error("Error while running healthcheck");
-                     req.ab.error(err);
-                     req.ab.log(results);
-                     res.serverError(err);
-                  });
             },
 
          },
