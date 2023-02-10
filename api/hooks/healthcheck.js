@@ -45,6 +45,8 @@ const servicesToPing = [
    "notification_email"
 ];
 
+const PING_TIMEOUT = 10000; // 10 seconds
+
 // This provides the req.ab.* methods.
 const utilPolicy = require("../policies/abUtils.js");
 
@@ -70,6 +72,9 @@ const healthcheck = function(req, res) {
    */
    };
    let statusCode = 200;
+   if (req.ab.tenantID == "??") {
+      req.ab.tenantID = "admin";
+   }
 
    servicesToPing.forEach((service) => {
       results[service] = {
@@ -84,7 +89,8 @@ const healthcheck = function(req, res) {
          let pingResponse = results[service];
          req.ab.serviceRequest(
             `${service}.healthcheck`,
-            {},
+            {}, // data
+            { maxAttempts: 1, timeout: PING_TIMEOUT }, // options
             (err, data = "") => {
                pingResponse.endTime = new Date();
                pingResponse.msElapsed = pingResponse.endTime - pingResponse.startTime;
