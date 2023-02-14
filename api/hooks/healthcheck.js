@@ -34,15 +34,67 @@
  */
 
 const servicesToPing = [
-   "appbuilder",
-   "bot_manager",
-   "log_manager",
-   "process_manager",
-   "tenant_manager",
-   "user_manager",
-   "file_processor",
-   "relay",
-   "notification_email"
+   {
+      name: "bot_manager",
+   },
+   {
+      name: "file_processor",
+   },
+   {
+      name: "relay",
+   },
+   {
+      name: "notification_email",
+   },
+   { 
+      name: "appbuilder",
+      test: {
+         request: "appbuilder.model-get",
+         params: { objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1" }
+      }
+   },
+   {
+      name: "definition_manager",
+      test: {
+         request: "definition_manager.definitions-check-update",
+         params: {}
+      }
+   },
+   {
+      name: "log_manager",
+      test: {
+         request: "log_manager.rowlog-find",
+         params: { objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1" }
+      }
+   },
+   {
+      name: "process_manager",
+      test: {
+         request: "process_manager.inbox.find",
+         params: { users: ["admin"] }
+      }
+   },
+   {
+      name: "tenant_manager",
+      test: {
+         request: "tenant_manager.find",
+         params: { key: "admin" }
+      }
+   },
+   {
+      name: "user_manager",
+      test: {
+         request: "user_manager.find",
+         params: { username: "admin" }
+      }
+   },
+   {
+      name: "custom_reports",
+      test: {
+         request: "custom_reports.report",
+         params: { reportKey: "hello-world" }
+      }
+   },
 ];
 
 const PING_TIMEOUT = 10000; // 10 seconds
@@ -54,6 +106,9 @@ const utilPolicy = require("../policies/abUtils.js");
  * The healthcheck endpoint handler.
  * "GET /healthcheck"
  * 
+ * Sends status code 200 if all services are OK.
+ * Sends status code 207 if one or more services are not OK.
+ * 
  * @param {HTTPRequest} req
  * @param {HTTPResponse} res
  */
@@ -63,10 +118,14 @@ const healthcheck = function(req, res) {
    /*
       <service>: { 
          isHealthy: <boolean>,
-         message: <string>,
-         startTime: <Date>,
-         endTime: <Date>,
-         msElapsed: <int>
+         ping: {
+            message: <string>,
+            time: <int>,
+         },
+         test: {
+            message: <string>,
+            time: <int>
+         }
       },
       ...
    */
@@ -77,36 +136,69 @@ const healthcheck = function(req, res) {
    }
 
    servicesToPing.forEach((service) => {
-      results[service] = {
-         isHealthy: null,
-         message: null,
-         startTime: new Date(),
-         endTime: null,
-         msElapsed: null
+      results[service.name] = {
+         isHealthy: true,
+         ping: {
+            message: null,
+            time: null,
+         },
+         test: {
+            message: null,
+            time: null
+         }
       };
+
       // Ping all services in parallel
       pings.push(new Promise((resolve) => {
-         let pingResponse = results[service];
+         let response = results[service.name];
+         let startTime = new Date();
          req.ab.serviceRequest(
-            `${service}.healthcheck`,
+            `${service.name}.healthcheck`,
             {}, // data
             { maxAttempts: 1, timeout: PING_TIMEOUT }, // options
             (err, data = "") => {
-               pingResponse.endTime = new Date();
-               pingResponse.msElapsed = pingResponse.endTime - pingResponse.startTime;
+               let endTime = new Date();
+               response.ping.time = endTime - startTime;
                if (err) {
-                  pingResponse.isHealthy = false;
-                  pingResponse.message = err.message || err;
+                  response.isHealthy = false;
+                  response.ping.message = err.message || err;
                   // 207 Multi-Status: some services are not OK
                   statusCode = 207;
                } else {
-                  pingResponse.isHealthy = true;
-                  pingResponse.message = data;
+                  response.ping.message = data;
                }
                resolve();
             }
          );
       }));
+
+      // Some services can be tested with with real requests
+      if (service.test) {
+         pings.push(new Promise((resolve) => {
+            let response = results[service.name];
+            let startTime = new Date();
+            req.ab.serviceRequest(
+               service.test.request,
+               service.test.params,
+               { maxAttempts: 1, timeout: PING_TIMEOUT },
+               (err, data) => {
+                  let endTime = new Date();
+                  response.test.time = endTime - startTime;
+                  if (err) {
+                     response.isHealthy = false;
+                     statusCode = 207;
+                     response.test.message = err.message || err;
+                  } else {
+                     response.test.message = "OK";
+                     // Don't send the `data` in the response because it
+                     // might contain user data. This healthcheck is accessible
+                     // with no authentication.
+                  }
+                  resolve();
+               }
+            );
+         }));
+      }
    });
 
    Promise.all(pings)
