@@ -33,6 +33,9 @@
  * }
  */
 
+// Add or modify your services here. Each service should have a basic
+// handler for <service name>.healthcheck. In addition, a service can have
+// a real request for testing.
 const servicesToPing = [
    {
       name: "bot_manager",
@@ -50,7 +53,7 @@ const servicesToPing = [
       name: "appbuilder",
       test: {
          request: "appbuilder.model-get",
-         params: { objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1" }
+         params: { objectID: "228e3d91-5e42-49ec-b37c-59323ae433a1", cond: {} }
       }
    },
    {
@@ -84,16 +87,16 @@ const servicesToPing = [
    {
       name: "user_manager",
       test: {
-         request: "user_manager.find",
+         request: "user_manager.user-find",
          params: { username: "admin" }
       }
    },
    {
       name: "custom_reports",
-      test: {
-         request: "custom_reports.report",
-         params: { reportKey: "hello-world" }
-      }
+      //test: {
+      //   request: "custom_reports.report",
+      //   params: { "reportKey": "hello-world", data: {} }
+      //}
    },
 ];
 
@@ -141,10 +144,6 @@ const healthcheck = function(req, res) {
          ping: {
             message: null,
             time: null,
-         },
-         test: {
-            message: null,
-            time: null
          }
       };
 
@@ -177,6 +176,10 @@ const healthcheck = function(req, res) {
          pings.push(new Promise((resolve) => {
             let response = results[service.name];
             let startTime = new Date();
+            response.test = {
+               message: null,
+               time: null
+            };
             req.ab.serviceRequest(
                service.test.request,
                service.test.params,
