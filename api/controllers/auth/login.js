@@ -44,7 +44,7 @@ module.exports = function (req, res) {
    req.ab.serviceRequest(
       "user_manager.user-find-password",
       { email, password },
-      (err, user) => {
+      async (err, user) => {
          if (err) {
             req.ab.log("error logging in:", err);
             res.ab.error(err, 401);
@@ -54,8 +54,10 @@ module.exports = function (req, res) {
          req.ab.log("successful auth/login");
          req.session.tenant_id = req.ab.tenantID;
          req.session.user_id = user.uuid;
+
+         // make response last so session is updated before next user interaction
+         await authLogger(req, "Local auth successful");
          res.ab.success({ user });
-         authLogger(req, "Local auth successful");
       }
    );
 };
