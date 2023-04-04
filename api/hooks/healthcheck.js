@@ -37,9 +37,9 @@
 // handler for <service name>.healthcheck. In addition, a service can have
 // a real request for testing.
 const servicesToPing = [
-   {
-      name: "bot_manager",
-   },
+   //{
+   //   name: "bot_manager",
+   //},
    {
       name: "file_processor",
    },
@@ -100,7 +100,7 @@ const servicesToPing = [
    },
 ];
 
-const PING_TIMEOUT = 10000; // 10 seconds
+const PING_TIMEOUT = 30000; // default 30 seconds
 
 // This provides the req.ab.* methods.
 const utilPolicy = require("../policies/abUtils.js");
@@ -109,6 +109,9 @@ const utilPolicy = require("../policies/abUtils.js");
  * The healthcheck endpoint handler.
  * "GET /healthcheck"
  * 
+ * Optional querystring param:
+ *   timeout
+ *
  * Sends status code 200 if all services are OK.
  * Sends status code 207 if one or more services are not OK.
  * 
@@ -154,16 +157,26 @@ const healthcheck = function(req, res) {
          req.ab.serviceRequest(
             `${service.name}.healthcheck`,
             {}, // data
-            { maxAttempts: 1, timeout: PING_TIMEOUT }, // options
+            {
+               maxAttempts: 1,
+               timeout: req.query.timeout ?? PING_TIMEOUT
+            },
             (err, data = "") => {
                let endTime = new Date();
                response.ping.time = endTime - startTime;
-               if (err) {
+               // Disabled services are OK.
+               if (err?.message == "Service is disabled.") {
+                  response.ping.message = "OK. Service is disabled.";
+               }
+               // Other errors are not OK.
+               else if (err) {
                   response.isHealthy = false;
                   response.ping.message = err.message || err;
                   // 207 Multi-Status: some services are not OK
                   statusCode = 207;
-               } else {
+               }
+               // OK
+               else {
                   response.ping.message = data;
                }
                resolve();
@@ -206,7 +219,10 @@ const healthcheck = function(req, res) {
 
    Promise.all(pings)
       .then(() => {
-         res.status(statusCode).json(results);
+         res
+            .set('Content-Type', 'application/json')
+            .status(statusCode)
+            .send(JSON.stringify(results, null, 2));
       })
       .catch((err) => {
          // This should only happen if there's an error in api_sails
