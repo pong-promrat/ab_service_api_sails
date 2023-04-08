@@ -1,8 +1,8 @@
 /**
- * file_processor/file-upload.js
+ * file_processor/image-upload.js
  *
  *
- * url:     post /file/upload/:objID/:fieldID
+ * url:     post /image/upload/:isWebix
  * header:  X-CSRF-Token : [token]
  * params:
  */
@@ -24,23 +24,15 @@ var pathFiles = sails.config.file_processor
 shell.mkdir("-p", pathFiles);
 
 var inputParams = {
-   // objID: { string: { uuid: true }, required: true },
-   // fieldID: { string: { uuid: true }, required: true },
-   objID: { string: true, required: true },
-   fieldID: { string: true, required: true },
    isWebix: { string: true, optional: true },
-   file_fullpath: { string: true, optional: true },
-   /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
-   /*                -> NOTE: put .string  before .required                    */
-   /*    "param": { required: true } // NOTE: param Joi.any().required();      */
-   /*    "param": { optional: true } // NOTE: param Joi.any().optional();      */
+   image_fullpath: { string: true, optional: true },
 };
 
 // make sure our BasePath is created:
 module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
 
-   req.ab.log(`file_processor::file-upload`);
+   req.ab.log(`file_processor::image-upload`);
 
    // verify your inputs are correct:
    if (
@@ -52,9 +44,7 @@ module.exports = function (req, res) {
       return;
    }
 
-   var objID = req.ab.param("objID");
-   var fieldID = req.ab.param("fieldID");
-   var isWebix = req.ab.param("isWebix") || "??";
+   const isWebix = req.ab.param("isWebix") || "??";
 
    var fileEntry;
    // {obj}
@@ -74,15 +64,13 @@ module.exports = function (req, res) {
                sails.config.file_processor.uploadPath || "tmp"
             );
             var maxBytes = sails.config.file_processor.maxBytes || 10000000;
-            req.file("file").upload(
+            req.file("image").upload(
                { dirname, maxBytes },
                function (err, list) {
                   if (err) {
                      req.ab.notify.developer(err, {
                         context:
-                           "api_sails:file_processor:create: file.upload()",
-                        objID,
-                        fieldID,
+                           "api_sails:file_processor:image-upload()",
                         isWebix,
                         dirname,
                         maxBytes,
@@ -142,24 +130,15 @@ module.exports = function (req, res) {
          (next) => {
             var jobData = {
                name: fileEntry.fd.split(path.sep).pop(),
-               object: objID,
-               field: fieldID,
                size: fileEntry.size,
                type: fileEntry.type,
                fileName: fileEntry.filename,
                uploadedBy: req.ab.userDefaults().username,
             };
 
-            // NOTE: when uploading a default image on an ABFieldImage
-            // it is possible to upload the image before the field is
-            // created, so there wont be a fieldID. 
-            if (fieldID === "undefined") {
-               jobData.field = "defaultImage";
-            }
-
             // pass the request off to the uService:
             req.ab.serviceRequest(
-               "file_processor.file-upload",
+               "file_processor.image-upload",
                jobData,
                (err, results) => {
                   serviceResponse = results;
@@ -191,7 +170,7 @@ module.exports = function (req, res) {
       (err /*, results */) => {
          // handle error reporting back to the client
          if (err) {
-            req.ab.log("api_sails:file_processor:create: error", err);
+            req.ab.log("api_sails:file_processor:image-upload: error", err);
             res.ab.error(err);
          }
       }
