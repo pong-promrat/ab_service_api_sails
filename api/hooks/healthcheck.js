@@ -5,8 +5,9 @@
  * Authentication is not needed. The response will be the same regardless of
  * the tenant.
  * 
- * Services must implement a `*.healthcheck` handler. The handler takes no
- * arguments and returns an optional message with its ping response.
+ * Services can implement a `*.healthcheck` handler. The handler takes no
+ * arguments and returns an optional message with its ping response. If no
+ * handler is provded by the service, a default basic handler will be used.
  * 
  * // Example service handler
  * // - ab_service_example

@@ -316,7 +316,7 @@ module.exports = {
    },
 
    /*
-    * get /plugin/:key
+    * get /plugin/:tenant/:key
     * return the proper path for the plugin requested for this Tenant.
     */
    pluginLoad: function (req, res) {
