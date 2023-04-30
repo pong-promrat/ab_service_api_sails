@@ -28,7 +28,6 @@
     "shortid": "^2.2.15"
   },
   "devDependencies": {
-    "@sailshq/eslint": "^4.19.3",
     "apidoc-markdown": "^7.2.5",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.7.0",
