@@ -135,19 +135,10 @@ const isUserKnown = (req, res, next) => {
       // make sure we have a Promise that will resolve to
       // the user created for this userID
       if (!commonRequest[key]) {
-         commonRequest[key] = new Promise((resolve, reject) => {
-            req.ab.serviceRequest(
-               "user_manager.user-find",
-               { uuid: userID },
-               (err, user) => {
-                  if (err) {
-                     reject(err);
-                     return;
-                  }
-                  resolve(user);
-               }
-            );
+         commonRequest[key] = req.ab.serviceRequest("user_manager.user-find", {
+            uuid: userID,
          });
+
          commonRequest[key].__count = 0;
       }
 
@@ -168,6 +159,7 @@ const isUserKnown = (req, res, next) => {
             next(null, user);
          })
          .catch((err) => {
+            delete commonRequest[key];
             next(err);
          });
 
@@ -191,16 +183,10 @@ module.exports = async (req, res, next) => {
    const tenantID = req.ab.tenantID;
    // If we don't have it cached, request from tenant manager
    if (!tenantOptionsCache[tenantID]) {
-      const { options } = await new Promise((resolve, reject) => {
-         req.ab.serviceRequest(
-            "tenant_manager.config",
-            { uuid: tenantID },
-            (err, tenant) => {
-               if (err) return reject(err);
-               resolve(tenant);
-            }
-         );
+      const { options } = await req.ab.serviceRequest("tenant_manager.config", {
+         uuid: tenantID,
       });
+
       tenantOptionsCache[tenantID] = JSON.parse(options);
    }
    const { authType, url } = tenantOptionsCache[tenantID];
