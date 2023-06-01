@@ -93,6 +93,8 @@ function submitJob(req, objectID, values) {
          // NOTE: When there are a lot of inserting row, then It will take more time to response.
          // Set .longRequest to avoid timeout error.
          longRequest: true,
+         // NOTE: disable to broadcast slate.update because it spend long time to process. It might cause to socket timeout.
+         disableStale: true,
          // relocate the rest of the params as .values
       };
 
