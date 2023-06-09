@@ -110,6 +110,7 @@ const isUserKnown = (req, res, next) => {
       let parts = req.headers["authorization"].split("@@@");
       if (
          parts[0] == "relay" &&
+         sails.config.relay?.mcc?.enabled &&
          parts[1] == sails.config.relay.mcc.accessToken
       ) {
          userID = parts[2];
