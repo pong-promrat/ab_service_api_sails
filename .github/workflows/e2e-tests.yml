@@ -17,7 +17,7 @@ jobs:
       - name: Install AppBuilder
         uses: digi-serve/ab-install-action@v1
       - name: Check out kitchen-sink tests
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: digi-serve/kitchensink_app
           path: AppBuilder/test/e2e/cypress/e2e/kitchensink_app
@@ -26,7 +26,7 @@ jobs:
         run: pm2 start ./logs.js -- --toFile logs/ABServices.log
         working-directory: ./AppBuilder
       - name: Wait for AB
-        uses: ifaxity/wait-on-action@v1
+        uses: ifaxity/wait-on-action@v1.1.0
         with:
           resource: http://localhost:80
           timeout: 300000
@@ -34,13 +34,13 @@ jobs:
         run: npm run test:e2e:app -- --browser chrome
         working-directory: ./AppBuilder
       - name: Save Screenshots 
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: cypress-screenshots
           path: ./AppBuilder/test/e2e/cypress/screenshots
       - name: Save Service Logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: ABServices.log
