@@ -55,6 +55,26 @@ module.exports = {
       maxBytes: env("FILE_PROCESSOR_MAXBYTES", 10000000),
    },
 
+   relay: {
+      /*************************************************************************/
+      /* Mobile Comm Center (mcc)                                              */
+      /* The ab_service_relay sends http requests to ab_api_sails              */
+      /* and it uses the accessToken as part of its authentication.            */
+      /* See also: ab_service_relay > ./config/local.js                        */
+      /*************************************************************************/
+      mcc: {
+         /**********************************************************************/
+         /* enable: {bool} is communicating with our MCC enabled?              */
+         /**********************************************************************/
+         enabled: env("RELAY_ENABLE", true),
+
+         /**********************************************************************/
+         /* accessToken: {string} required accessToken for sails to accept     */
+         /**********************************************************************/
+         accessToken: env("RELAY_SERVER_TOKEN", "There is no spoon."),
+      },
+   },
+
    http: {
       trustProxy: true,
    },
