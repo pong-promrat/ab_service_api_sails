@@ -56,6 +56,9 @@ module.exports = {
    },
 
    relay: {
+      // Note that "enable" is in present tense.
+      enable: env("RELAY_ENABLE", true),
+
       /*************************************************************************/
       /* Mobile Comm Center (mcc)                                              */
       /* The ab_service_relay sends http requests to ab_api_sails              */
@@ -66,6 +69,8 @@ module.exports = {
          /**********************************************************************/
          /* enable: {bool} is communicating with our MCC enabled?              */
          /**********************************************************************/
+         // Note that "enabled" is in past tense.
+         // But "RELAY_ENABLE" is in present tense.
          enabled: env("RELAY_ENABLE", true),
 
          /**********************************************************************/
