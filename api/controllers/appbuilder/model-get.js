@@ -43,7 +43,7 @@ var inputParams = {
    offset: { number: { integer: true }, optional: true },
    // offset: the number of entries to skip.
    limit: { number: { integer: true }, optional: true },
-   // limit: the number or entreis to return.
+   // limit: the number or entries to return.
 };
 
 // make sure our BasePath is created:
@@ -51,6 +51,18 @@ module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
 
    req.ab.log(`appbuilder::model-get`);
+
+   // Sanity Check: make sure our provided params aren't in string form:
+   // NOTE: mobile apps making REST calls, don't get their req.query params
+   // parsed into req.body.  This will make sure we treat these values as
+   // json.
+   try {
+      if (req.query.populate) {
+         req.query.populate = JSON.parse(req.query.populate);
+      }
+   } catch (e) {
+      req.ab.log(e);
+   }
 
    // verify your inputs are correct:
    // false : prevents an auto error response if detected. (default: true)
