@@ -14,8 +14,6 @@ var inputParams = {};
 
 // make sure our BasePath is created:
 module.exports = function (req, res) {
-   // Package the Find Request and pass it off to the service
-
    req.ab.log(`relay::user-qr`);
 
    if (
@@ -27,17 +25,22 @@ module.exports = function (req, res) {
       return;
    }
 
-   // create a new job for the service
+   // There is no data to send. The service just looks at the user UUID of
+   // the current user.
    let jobData = {};
 
-   // pass the request off to the uService:
-   req.ab.serviceRequest("relay.user-qr", jobData, (err, results) => {
+   req.ab.serviceRequest("relay.user-qr", jobData, (err, imageDataURL) => {
       if (err) {
          res.ab.error(err);
          return;
       }
-      res.set("Cache-Control", "max-age=0, no-cache;");
+
+      // Convert base64 dataURL into a binary image buffer
+      let base64Text = imageDataURL.substring(22);
+      let imageBuffer = Buffer.from(base64Text, "base64");
+
+      res.set("Cache-Control", "max-age=0, no-store;");
       res.set("Content-Type", "image/png");
-      res.send(results);
+      res.send(imageBuffer);
    });
 };
