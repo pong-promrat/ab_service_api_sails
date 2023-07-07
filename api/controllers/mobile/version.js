@@ -20,7 +20,7 @@ module.exports = function (req, res) {
 
    var user = req.ab.user;
    if (user) {
-      res.ab.success({ version: "0.0.9" });
+      res.ab.success({ version: "1.0.0" });
    } else {
       res.ab.reauth();
    }
