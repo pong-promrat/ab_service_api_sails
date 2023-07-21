@@ -44,6 +44,8 @@ var inputParams = {
    // offset: the number of entries to skip.
    limit: { number: { integer: true }, optional: true },
    // limit: the number or entries to return.
+
+   disableMinifyRelation: { optional: true },
 };
 
 // make sure our BasePath is created:
