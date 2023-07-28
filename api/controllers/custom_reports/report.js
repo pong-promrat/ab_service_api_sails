@@ -34,6 +34,7 @@ module.exports = function (req, res) {
    // create a new job for the service
    const jobData = {
       reportKey: req.ab.param("key"),
+      longRequest: true,
    };
 
    const data = req.allParams();
