@@ -2,7 +2,7 @@
  * mobile/manifest.js
  * @apiDescription Respond with the manifest.json of the Mobile PWA
  *
- * @api {get} /mobile/app/:ID/manifest.json
+ * @api {get} /mobile/app/:tenantID/:ID/manifest.json
  * @apiGroup Mobile
  * @apiPermission None
  * @apiUse successRes

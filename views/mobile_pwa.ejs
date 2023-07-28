@@ -33,6 +33,10 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="icon" href="/mobile/app/<%= appID %>/favicon.png" />
     <link rel="manifest" href="/mobile/app/<%= tenantID %>/<%= appID %>/manifest.json" />
+    <script type='text/javascript'>
+      Window.__ab_config=<%- config %>;
+      Window.__ab_definitions=<%- definitions %>;
+    </script>
     <!-- built styles file will be auto injected -->
   </head>
   <body>
