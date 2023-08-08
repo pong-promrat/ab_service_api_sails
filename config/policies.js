@@ -17,6 +17,8 @@ module.exports.policies = {
       // sailsio: noAuth,  // <-- now served by nginx
    },
 
+   "mobile/app": noAuth,
+
    /***************************************************************************
     *                                                                          *
     * Default policy for all controllers and actions, unless overridden.       *

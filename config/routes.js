@@ -162,5 +162,6 @@ module.exports.routes = {
    "get /mobile/version/:ID": "mobile/version",
    "get /mobile/app/:ID/favicon.png": "mobile/favicon",
    "get /mobile/app/:tenantID/:ID/manifest.json": "mobile/manifest",
-   "get /mobile/app/:ID": "mobile/app",
+   "get /mobile/app/:tenantID/:ID": "mobile/app",
+   "get /mobile/qr/:ID": "mobile/qr",
 };

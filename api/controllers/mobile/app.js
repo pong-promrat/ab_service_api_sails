@@ -18,12 +18,13 @@ module.exports = function (req, res) {
    req.ab.log("mobile/app():");
 
    var user = req.ab.user;
-   if (!user) {
-      res.ab.reauth();
-      return;
-   }
    let appID = req.ab.param("ID");
    let tenantID = req.ab.tenantID;
+   if (!tenantID || tenantID == "??") {
+      tenantID = req.ab.param("tenantID");
+      req.ab.tenantID = tenantID;
+   }
+
    let config = null;
    let definitions = null;
 
