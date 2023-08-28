@@ -40,6 +40,7 @@ ___
 - [File](#File)
   - [Get a File](#Get-a-File)
   - [Get a File as base64](#Get-a-File-as-base64)
+  - [Upload a File as base64](#Upload-a-File-as-base64)
   - [Upload](#Upload)
 - [Log](#Log)
   - [Find](#Find)
