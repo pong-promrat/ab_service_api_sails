@@ -1,17 +1,19 @@
 /**
- * file_processor/file-upload.js
+ * file_processor/file-base64-upload.js
  *
  *
- * @api {post} /file/upload/:objID/:fieldID Upload
- * @apiGroup File
- * @apiPermission User
- * @apiUse objID
- * @apiParam {string} fieldID
- * @apiQuery {string} [file_fullpath]
+ * @api {post} /file/upload/base64/:objID/:fieldID Upload
+ * @apiParam {string: base64} file
+ * @apiParam {uuid} photoID
+ * @apiParam {uuid} objID
+ * @apiParam {uuid} fieldID
+ * @apiParam {string} uploadedBy
+ * @apiParam {number} size
+ * @apiParam {string} type
+ * @apiParam {string} fileName
  * @apiUse successRes
  * @apiSuccess (200) {Object} data
  * @apiSuccess (200) {string} data.uuid
- * @apiSuccess (200) {string} data.status `"server"` if using a webix uploader
  */
 
 const async = require("async");
@@ -19,24 +21,18 @@ const { error } = require("console");
 
 var inputParams = {
    file: { string: true, required: true },
-   photoID: { string: true, required: true }, // this is what the mobile expects the param to be called
+   photoID: { string: true, required: true },
    objID: { string: true, required: true },
    fieldID: { string: true, required: true },
-   uploadedBy: { string: true, optional: true },
-   size: { number: true, optional: true },
-   type: { string: true, optional: true },
-   fileName: { string: true, optional: true },
-   /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
-   /*                -> NOTE: put .string  before .required                    */
-   /*    "param": { required: true } // NOTE: param Joi.any().required();      */
-   /*    "param": { optional: true } // NOTE: param Joi.any().optional();      */
+   uploadedBy: { string: true, required: true },
+   size: { number: true, required: true },
+   type: { string: true, required: true },
+   fileName: { string: true, required: true },
 };
 
-// make sure our BasePath is created:
 module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
-
-   req.ab.log(`file_processor::file-upload-base64`);
+   req.ab.log(`file_processor::file-base64-upload`);
 
    // verify your inputs are correct:
    if (
@@ -48,29 +44,36 @@ module.exports = function (req, res) {
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;
-   } else {
-      // log that all params are valid
-      req.ab.log("... base64 all params are valid");
-      // log the decoded file
-      req.ab.log("... base64 file: --taking this out because too long");
    }
 
    var objID = req.ab.param("objID");
+   // {uuid}
+   // this will contain the uploaded file
    var photoID = req.ab.param("photoID");
+   // {uuid}
+   // this will contain the uploaded file
    var fieldID = req.ab.param("fieldID");
+   // {uuid}
+   // this will contain the uploaded file
    var uploadedBy = req.ab.param("uploadedBy");
+   // {string}
+   // this is the owner of the file
    var type = req.ab.param("type");
+   // {string}
+   // this is the file type (image/png, image/jpeg, etc)
    var size = req.ab.param("size");
+   // {number: int bytes}
+   // size of uploaded file
    var fileName = req.ab.param("fileName");
+   // {string}
+   // uuid+name+extension of uploaded file
    var file = req.ab.param("file");
-
-   // var fileEntry;
-   // {obj}
-   // this will contain all the uploaded information about our incoming file
+   // {string}
+   // this will contain the uploaded file
 
    var serviceResponse;
    // {obj}
-   // our response back from the file_processor.file-upload service
+   // our response back from the file_processor.file-base64-upload service
 
    async.series(
       [
@@ -78,46 +81,23 @@ module.exports = function (req, res) {
          (next) => {
             var maxBytes = sails.config.file_processor.maxBytes || 10000000;
             // the file is one of the params: req.param('file')
-            // decode the file
             var fileData = Buffer.from(file, "base64");
-            let fileSize = fileData.length;
 
-            // fileEntry = fileData.fileEntry; // info about file
             // check size of file
-            if (fileSize > maxBytes) {
+            if (fileData.length > maxBytes) {
                var err = new Error(
                   "File size exceeds maximum allowed: " + maxBytes
                );
                req.ab.notify.developer(err);
+               next(err);
             } else {
-               // req.ab.log(
-               //    "... There is no fileEntry metadata in fileEntry-base64:"
-               // );
-               // // lookup metadata about the file on the object
-               // if (fileData) {
-               //    Object.keys(fileData).forEach((key) => {
-               //       //log all keys
-               //       req.ab.log("... fileData keys:", key);
-               //    });
                next();
-               // } else {
-               //    var err2 = new Error("No file uploaded for parameter [file]");
-               //    req.ab.notify.developer("err", {
-               //       context:
-               //          "api_sails:file_processor:create: file-base64. We are unable to extract the file data???",
-               //    });
-               //    // next();
-               //    err2.code = 422;
-               //    next(err2);
-               // }
             }
-            // });
          },
 
          // 3) pass the job to the client
          (next) => {
             var jobData = {
-               // name: fileEntry.fd.split(path.sep).pop(),
                photoID: photoID,
                object: objID,
                field: fieldID,
@@ -153,7 +133,10 @@ module.exports = function (req, res) {
       (err /*, results */) => {
          // handle error reporting back to the client
          if (err) {
-            req.ab.log("api_sails:file_processor:create: error", err);
+            req.ab.log(
+               "api_sails:file_processor:file-base64-upload: error",
+               err
+            );
             res.ab.error(err);
          }
       }
