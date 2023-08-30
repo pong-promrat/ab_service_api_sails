@@ -3,14 +3,13 @@
  *
  *
  * @api {post} /file/upload/base64/:objID/:fieldID Upload
- * @apiParam {string: base64} file
- * @apiParam {uuid} photoID
  * @apiParam {uuid} objID
  * @apiParam {uuid} fieldID
- * @apiParam {string} uploadedBy
- * @apiParam {number} size
- * @apiParam {string} type
- * @apiParam {string} fileName
+ * @apiBody {string} file
+ * @apiBody {uuid} fileID
+ * @apiBody {string} fileName
+ * @apiBody {string} type
+ * @apiBody {string} uploadedBy
  * @apiUse successRes
  * @apiSuccess (200) {Object} data
  * @apiSuccess (200) {string} data.uuid
@@ -20,14 +19,13 @@ const async = require("async");
 const { error } = require("console");
 
 var inputParams = {
-   file: { string: true, required: true },
-   photoID: { string: true, required: true },
-   objID: { string: true, required: true },
    fieldID: { string: true, required: true },
-   uploadedBy: { string: true, required: true },
-   size: { number: true, required: true },
-   type: { string: true, required: true },
+   file: { string: true, required: true },
+   fileID: { string: true, required: false },
    fileName: { string: true, required: true },
+   objID: { string: true, required: true },
+   type: { string: true, required: true },
+   uploadedBy: { string: true, required: true },
 };
 
 module.exports = function (req, res) {
@@ -39,35 +37,30 @@ module.exports = function (req, res) {
       !(req.ab.validUser(/* false */)) ||
       !req.ab.validateParameters(inputParams /*, false , valuesToCheck*/)
    ) {
-      req.ab.log("... base64Params invalid");
-      req.ab.log(error);
       // an error message is automatically returned to the client
       // so be sure to return here;
       return;
    }
 
-   var objID = req.ab.param("objID");
+   const objID = req.ab.param("objID");
    // {uuid}
    // this will contain the uploaded file
-   var photoID = req.ab.param("photoID");
+   const fileID = req.ab.param("fileID") || null;
    // {uuid}
    // this will contain the uploaded file
-   var fieldID = req.ab.param("fieldID");
+   const fieldID = req.ab.param("fieldID");
    // {uuid}
    // this will contain the uploaded file
-   var uploadedBy = req.ab.param("uploadedBy");
+   const uploadedBy = req.ab.param("uploadedBy");
    // {string}
    // this is the owner of the file
-   var type = req.ab.param("type");
+   const type = req.ab.param("type");
    // {string}
    // this is the file type (image/png, image/jpeg, etc)
-   var size = req.ab.param("size");
-   // {number: int bytes}
-   // size of uploaded file
-   var fileName = req.ab.param("fileName");
+   const fileName = req.ab.param("fileName");
    // {string}
    // uuid+name+extension of uploaded file
-   var file = req.ab.param("file");
+   const file = req.ab.param("file");
    // {string}
    // this will contain the uploaded file
 
@@ -77,7 +70,7 @@ module.exports = function (req, res) {
 
    async.series(
       [
-         // 1) this used to wait until file was uploaded, is is nessicary now?
+         // 1) check if the file is oversized
          (next) => {
             var maxBytes = sails.config.file_processor.maxBytes || 10000000;
             // the file is one of the params: req.param('file')
@@ -98,14 +91,13 @@ module.exports = function (req, res) {
          // 3) pass the job to the client
          (next) => {
             var jobData = {
-               photoID: photoID,
+               fileID,
                object: objID,
                field: fieldID,
-               file: file, // raw base64 file
-               size: size,
-               type: type,
-               fileName: fileName,
-               uploadedBy: uploadedBy || req.ab.userDefaults().username,
+               file, // raw base64 file
+               type,
+               fileName,
+               uploadedBy,
             };
 
             // pass the request off to the uService:
