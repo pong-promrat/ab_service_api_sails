@@ -40,6 +40,7 @@ ___
 - [File](#File)
   - [Get a File](#Get-a-File)
   - [Get a File as base64](#Get-a-File-as-base64)
+  - [Upload a File as base64](#Upload-a-File-as-base64)
   - [Upload](#Upload)
 - [Log](#Log)
   - [Find](#Find)
@@ -1128,4 +1129,33 @@ ___
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
 | data | `object` |  |
 | data.done | `boolean` | <p><code>true</code></p> |
+
+
+
+  
+<a name='Upload'></a>
+### Upload - `POST` /file/upload/base64/:objID/:fieldID
+[Back to top](#top)
+
+
+#### Parameters
+| Name     | Type       | Location    |  Description            |
+|----------|------------|-------------|-------------------------|
+| objID | `uuid` | route |  |
+| fieldID | `uuid` | route |  |
+| file | `string` | body |  |
+| fileID | `uuid` | body |  |
+| fileName | `string` | body |  |
+| size | `number` | body |  |
+| type | `string` | body |  |
+| uploadedBy | `string` | body |  |
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| data | `Object` |  |
+| data.uuid | `string` |  |
+| status | `string` | <p><code>&quot;success&quot;</code></p> |
 
