@@ -64,7 +64,10 @@ module.exports.routes = {
 
    // file_processor routes:
    "post /file/upload/:objID/:fieldID/:isWebix": "file_processor/file-upload",
-   "get  /file/:ID": "file_processor/file-get",
+   "post /file/upload/base64/:objID/:fieldID":
+      "file_processor/file-base64-upload",
+   "get /file/:ID": "file_processor/file-get",
+   "get /file/:ID/base64": "file_processor/file-base64",
    "post /image/upload/:isWebix": "file_processor/image-upload",
 
    /***************************************************************************
