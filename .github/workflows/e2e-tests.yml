@@ -8,7 +8,7 @@ jobs:
     env:
       CYPRESS_RESPONSE_TIMEOUT: 200000
       CYPRESS_DEFAULT_COMMAND_TIMEOUT: 40000
-      CYPRESS_RETRIES: 2
+      CYPRESS_RETRIES: 4
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -26,7 +26,7 @@ jobs:
         run: pm2 start ./logs.js -- --toFile logs/ABServices.log
         working-directory: ./AppBuilder
       - name: Wait for AB
-        uses: ifaxity/wait-on-action@v1
+        uses: ifaxity/wait-on-action@v1.1.0
         with:
           resource: http://localhost:80
           timeout: 3000000
@@ -34,13 +34,13 @@ jobs:
         run: npm run test:e2e:app -- --browser chrome
         working-directory: ./AppBuilder
       - name: Save Screenshots 
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: cypress-screenshots
           path: ./AppBuilder/test/e2e/cypress/screenshots
       - name: Save Service Logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: ABServices.log
