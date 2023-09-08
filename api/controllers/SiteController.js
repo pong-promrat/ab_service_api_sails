@@ -11,7 +11,6 @@ module.exports = {
    //    console.log("!!!! LabelMissing !!!!");
    //    res.ab.success({ done: true });
    // },
-
    index: function (req, res) {
       // NGinx well send index.html from /home, but we go through sails for Authentication
       return res.redirect("/home");
@@ -58,6 +57,10 @@ module.exports = {
       // {obj} { key: text }
       // The labels used by the web platform to display.  They will be in the
       // language of the user that is running this request.
+
+      var configLanguages = null;
+      // {obj} { key: text }
+      // The languages defined in the current tenant for the site.
 
       var configSite = {
          relay: sails.config.relay?.enable ?? false,
@@ -171,6 +174,20 @@ module.exports = {
                   jobData,
                   (err, results) => {
                      configLabels = results;
+                     done(err);
+                  }
+               );
+            },
+
+            (done) => {
+               const jobData = {};
+
+               // pass the request off to the uService:
+               req.ab.serviceRequest(
+                  "appbuilder.languages",
+                  jobData,
+                  (err, results) => {
+                     configLanguages = results;
                      done(err);
                   }
                );
@@ -295,10 +312,11 @@ module.exports = {
                      inbox: configInbox,
                      inboxMeta: configInboxMeta,
                      labels: configLabels,
+                     languages: configLanguages,
                      site: configSite,
                      tenant: configTenant,
                      user: configUser,
-                     userReal: req.ab.isSwitcherood()? req.ab.userReal : 0,
+                     userReal: req.ab.isSwitcherood() ? req.ab.userReal : 0,
                      meta: configMeta,
                      settings,
                   });
@@ -316,7 +334,7 @@ module.exports = {
    },
 
    /*
-    * get /plugin/:key
+    * get /plugin/:tenant/:key
     * return the proper path for the plugin requested for this Tenant.
     */
    pluginLoad: function (req, res) {
@@ -329,7 +347,7 @@ module.exports = {
       // {string} should resolve to the filename: {key}.js of the plugin
       // file to load.
 
-      req.ab.log(`/plugin/${key}`);
+      req.ab.log(`/plugin/${tenant}/${key}`);
       if (key.indexOf("ABDesigner.") == 0) {
          // ABDesigner is our common plugin for all Tenants.
          // We share the same tenant/default/ABDesigner.js file
@@ -343,7 +361,7 @@ module.exports = {
          return res.redirect(pluginSrc);
       }
       req.ab.log(`no tenant set when requesting plugin ${key}`);
-      res.send("console.log('plugin request: login first');");
+      res.send("plugin request: login first");
       // res.ab.error(new Error("no tenant set. Login first."));
    },
 };

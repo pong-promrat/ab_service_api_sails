@@ -2,9 +2,17 @@
  * file_processor/file-upload.js
  *
  *
- * url:     post /file/upload/:objID/:fieldID
- * header:  X-CSRF-Token : [token]
- * params:
+ * @api {post} /file/upload/:objID/:fieldID Upload
+ * @apiGroup File
+ * @apiPermission User
+ * @apiUse objID
+ * @apiParam {string} fieldID
+ * @apiQuery {string} [isWebix]
+ * @apiQuery {string} [file_fullpath]
+ * @apiUse successRes
+ * @apiSuccess (200) {Object} data
+ * @apiSuccess (200) {string} data.uuid
+ * @apiSuccess (200) {string} data.status `"server"` if using a webix uploader
  */
 
 const async = require("async");
@@ -149,6 +157,13 @@ module.exports = function (req, res) {
                fileName: fileEntry.filename,
                uploadedBy: req.ab.userDefaults().username,
             };
+
+            // NOTE: when uploading a default image on an ABFieldImage
+            // it is possible to upload the image before the field is
+            // created, so there wont be a fieldID. 
+            if (fieldID === "undefined") {
+               jobData.field = "defaultImage";
+            }
 
             // pass the request off to the uService:
             req.ab.serviceRequest(
