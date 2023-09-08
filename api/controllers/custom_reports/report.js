@@ -1,10 +1,13 @@
 /**
  * custom_reports/report.js
+ * @apiDescription Get a custom report
  *
- *
- * url:     get /report/:key
- * header:  X-CSRF-Token : [token]
- * params:
+ * @api {get} /report/:key View
+ * @apiGroup Report
+ * @apiPermission User
+ * @apiParam {string} key report to request
+ * @apiQuery {any} params... additional params as required by the report
+ * @apiSuccess (200) {text/html} content the html report
  */
 
 var inputParams = {
@@ -31,6 +34,7 @@ module.exports = function (req, res) {
    // create a new job for the service
    const jobData = {
       reportKey: req.ab.param("key"),
+      longRequest: true,
    };
 
    const data = req.allParams();

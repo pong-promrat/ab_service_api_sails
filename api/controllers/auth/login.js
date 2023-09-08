@@ -1,12 +1,17 @@
 /**
  * auth/login.js
- * Process the provided login email/password and establish a user session
+ * @apiDescription Process the provided login email/password and establish a user session
  * if valid.
  *
- * url:     post /auth/login
- * header:  X-CSRF-Token : [token]
- * return:  { user }
- * params:
+ * @api {post} /auth/login Login
+ * @apiGroup Auth
+ * @apiPermission None
+ * @apiUse email
+ * @apiUse password
+ * @apiUse tenantO
+ * @apiUse successRes
+ * @apiSuccess (200) {object} data
+ * @apiSuccess (200) {object} data.user
  */
 const authLogger = require("../../lib/authLogger.js");
 
@@ -44,7 +49,7 @@ module.exports = function (req, res) {
    req.ab.serviceRequest(
       "user_manager.user-find-password",
       { email, password },
-      (err, user) => {
+      async (err, user) => {
          if (err) {
             req.ab.log("error logging in:", err);
             res.ab.error(err, 401);
@@ -54,8 +59,10 @@ module.exports = function (req, res) {
          req.ab.log("successful auth/login");
          req.session.tenant_id = req.ab.tenantID;
          req.session.user_id = user.uuid;
+
+         // make response last so session is updated before next user interaction
+         await authLogger(req, "Local auth successful");
          res.ab.success({ user });
-         authLogger(req, "Local auth successful");
       }
    );
 };
