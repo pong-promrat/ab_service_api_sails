@@ -2,7 +2,9 @@
  * file_processor/file-base64-upload.js
  *
  *
- * @api {post} /file/upload/base64/:objID/:fieldID Upload
+ * @api {post} /file/upload/base64/:objID/:fieldID Upload a Base64 Encoded File
+ * @apiGroup File
+ * @apiPermission User
  * @apiParam {uuid} objID
  * @apiParam {uuid} fieldID
  * @apiBody {string} file
@@ -16,7 +18,6 @@
  */
 
 const async = require("async");
-const { error } = require("console");
 
 var inputParams = {
    fieldID: { string: true, required: true },

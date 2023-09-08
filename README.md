@@ -71,8 +71,8 @@ ___
 - [File](#File)
   - [Get a File](#Get-a-File)
   - [Get a File as base64](#Get-a-File-as-base64)
-  - [Upload a File as base64](#Upload-a-File-as-base64)
   - [Upload](#Upload)
+  - [Upload a Base64 Encoded File](#Upload-a-Base64-Encoded-File)
 - [Log](#Log)
   - [Find](#Find)
 - [Multilingual](#Multilingual)
@@ -736,6 +736,33 @@ ___
 | data.uuid | `string` |  |
 | data.status | `string` | <p><code>&quot;server&quot;</code> if using a webix uploader</p> |
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
+  
+<a name='Upload-a-Base64-Encoded-File'></a>
+### Upload a Base64 Encoded File - `POST` /file/upload/base64/:objID/:fieldID
+[Back to top](#top)
+
+
+**Permission:** `User`
+\- Any authenticated user
+#### Parameters
+| Name     | Type       | Location    |  Description            |
+|----------|------------|-------------|-------------------------|
+| objID | `uuid` | route |  |
+| fieldID | `uuid` | route |  |
+| file | `string` | body |  |
+| fileID | `uuid` | body |  |
+| fileName | `string` | body |  |
+| type | `string` | body |  |
+| uploadedBy | `string` | body |  |
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| data | `Object` |  |
+| data.uuid | `string` |  |
+| status | `string` | <p><code>&quot;success&quot;</code></p> |
 
 <a name='Log'></a> 
 ## Log
@@ -1160,33 +1187,4 @@ ___
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
 | data | `object` |  |
 | data.done | `boolean` | <p><code>true</code></p> |
-
-
-
-  
-<a name='Upload'></a>
-### Upload - `POST` /file/upload/base64/:objID/:fieldID
-[Back to top](#top)
-
-
-#### Parameters
-| Name     | Type       | Location    |  Description            |
-|----------|------------|-------------|-------------------------|
-| objID | `uuid` | route |  |
-| fieldID | `uuid` | route |  |
-| file | `string` | body |  |
-| fileID | `uuid` | body |  |
-| fileName | `string` | body |  |
-| size | `number` | body |  |
-| type | `string` | body |  |
-| uploadedBy | `string` | body |  |
-#### Responses
-
-##### Success response - `200`
-
-| Name     | Type       | Description                           |
-|----------|------------|---------------------------------------|
-| data | `Object` |  |
-| data.uuid | `string` |  |
-| status | `string` | <p><code>&quot;success&quot;</code></p> |
 
