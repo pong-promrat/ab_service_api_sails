@@ -5,6 +5,18 @@
 const path = require("path");
 
 const Mysql = require("mysql"); // our  {DB Connection}
+const Sentry = require("@sentry/node");
+Sentry.init({
+   dsn: "https://c023b8b25d0683f8b68b626c754a931b@o144358.ingest.sentry.io/4505905175330817",
+   release: process.env.node_package_version,
+   sampleRate: 0.1,
+   tracesSampleRate: 0.1,
+   normalizeDepth: 5,
+   integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.Express(),
+   ],
+});
 var config = require(path.join(__dirname, "config", "local.js"));
 
 var displayCount = 0;
