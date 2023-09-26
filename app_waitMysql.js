@@ -6,12 +6,10 @@ const path = require("path");
 
 const Mysql = require("mysql"); // our  {DB Connection}
 const Sentry = require("@sentry/node");
+const { version } = require("./package");
 Sentry.init({
-   dsn: "https://c023b8b25d0683f8b68b626c754a931b@o144358.ingest.sentry.io/4505905175330817",
-   release: process.env.node_package_version,
-   sampleRate: 0.1,
-   tracesSampleRate: 0.1,
-   normalizeDepth: 5,
+   dsn: "https://0363fe8e68b2fbd38a807305a3a1212c@o144358.ingest.sentry.io/4505945407488000",
+   release: version,
    integrations: [
       new Sentry.Integrations.Http({ tracing: true }),
       new Sentry.Integrations.Express(),
