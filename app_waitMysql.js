@@ -5,16 +5,7 @@
 const path = require("path");
 
 const Mysql = require("mysql"); // our  {DB Connection}
-const Sentry = require("@sentry/node");
-const { version } = require("./package");
-Sentry.init({
-   dsn: "https://0363fe8e68b2fbd38a807305a3a1212c@o144358.ingest.sentry.io/4505945407488000",
-   release: version,
-   integrations: [
-      new Sentry.Integrations.Http({ tracing: true }),
-      new Sentry.Integrations.Express(),
-   ],
-});
+
 var config = require(path.join(__dirname, "config", "local.js"));
 
 var displayCount = 0;

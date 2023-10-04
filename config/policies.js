@@ -9,13 +9,13 @@
  */
 
 var defaultStack = [
-   "sentry",
    "abUtils",
+   "telemetry",
    "authTenant",
    "authUser",
    "authSwitcheroo",
 ];
-var noAuth = ["sentry", "abUtils", "authTenant"];
+var noAuth = ["abUtils", "telemetry", "authTenant"];
 
 module.exports.policies = {
    SiteController: {

@@ -29,6 +29,7 @@ module.exports = function serverError(data) {
    // Get access to `req` and `res`
    const req = this.req;
    const res = this.res;
+   if (!process.env.SENTRY) return _serverError(data, req, res);
    Sentry.Handlers.errorHandler()(data, req, res, () =>
       // Call the default sails response
       _serverError(data, req, res)

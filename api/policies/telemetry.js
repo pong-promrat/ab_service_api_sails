@@ -1,20 +1,17 @@
 const Sentry = require("@sentry/node");
 
 module.exports = async (req, res, next) => {
+   if (!process.env.SENTRY) return next();
    const options = { user: ["id", "username"], transaction: "path" };
    await waitCallback(Sentry.Handlers.requestHandler(options), req, res);
-   await waitCallback(Sentry.Handlers.tracingHandler(options), req, res);
-   // Remove the domain name from the transaction name
-   const regex = /([^:]+:)\/\/[^/]+(\/.*)/;
-   if (!regex.test(res.__sentry_transaction.name)) {
-      console.log(
-         "Unmatched Sentry Transaction",
-         res.__sentry_transaction.name
-      );
-      next();
-   }
-   const nameParts = res.__sentry_transaction.name.match(regex);
-   res.__sentry_transaction.setName(`${nameParts[1]} ${nameParts[2]}`);
+   const path = req.route.path;
+   req.ab.spanRequest(path, {
+      op: req.protocol == "ws" ? "websocket.server" : "http.server",
+   });
+   // Queue the end of the tracing span
+   res.once("finish", () => {
+      setImmediate(() => req.ab.spanEnd(path));
+   });
    next();
 };
 
