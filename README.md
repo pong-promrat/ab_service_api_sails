@@ -1,9 +1,40 @@
-[![E2E Tests](https://github.com/digi-serve/ab_service_api_sails/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/digi-serve/ab_service_api_sails/actions/workflows/e2e-tests.yml) [![build-on-commit](https://github.com/digi-serve/ab_service_api_sails/actions/workflows/build-on-commit.yml/badge.svg)](https://github.com/digi-serve/ab_service_api_sails/actions/workflows/build-on-commit.yml)
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/digi-serve/ab_service_api_sails/pr-merge-release.yml?logo=github&label=Build%20%26%20Test)](https://github.com/digi-serve/ab_service_api_sails/actions/workflows/pr-merge-release.yml)
+[![GitHub tag (with filter)](https://img.shields.io/github/v/tag/digi-serve/ab_service_api_sails?logo=github&label=Latest%20Version)
+](https://github.com/digi-serve/ab_service_api_sails/releases)
+[![Docker Pulls](https://img.shields.io/docker/pulls/digiserve/ab-api-sails?logo=docker&logoColor=white&label=Docker%20Pulls)](https://hub.docker.com/r/digiserve/ab-api-sails)
+[![Image Size](https://img.shields.io/docker/image-size/digiserve/ab-api-sails/master?logo=docker&logoColor=white&label=Image%20Size)](https://hub.docker.com/r/digiserve/ab-api-sails/tags)
 
-# AppBuilder API v2.0.0
+# AppBuilder API
+An AppBuilder service - the api endpoint for our AppBuilder Runtime.
 
-The api endpoint for our AppBuilder Runtime.
+## Install
+See [ab_cli](https://github.com/digi-serve/ab-cli)
 
+## Pull Requests
+Pull Requests should be tagged with a label `major`, `minor` or `patch`. Use `major` for breaking changes, `minor` for new features, or `patch` for bug fixes. To merge without creating a release a `no_release` tag can be added instead.
+
+:pencil: In the pull request body add release notes between these tags:
+```md
+<!-- #release_notes -->
+
+<!-- /release_notes --> 
+```
+Anything between those 2 lines will be used as release notes when creating a version.
+
+### When merged:
+ - A new version will be created using semantic versioning
+ - The version will be updated in `package.json`
+ - A new tag and release will be created on GitHub
+ - A new docker image will be built, tagged with the version and published to dockerhub
+ - A Workflow in `ab_runtime` will be triggered to update the service version file.
+
+## Manually Building a Docker Image
+It may be useful to build a custom docker image from a feature branch for testing.
+This can be done through a workflow dispatch trigger.
+1. Go to the Actions tab
+2. Select the 'Docker Build Custom' workflow
+3. Select 'run Workflow' and fill in the form
+The image will be built from the selected branch and pushed to dockerhub using the given tags
 ___
 
 ## Reference
@@ -40,8 +71,8 @@ ___
 - [File](#File)
   - [Get a File](#Get-a-File)
   - [Get a File as base64](#Get-a-File-as-base64)
-  - [Upload a File as base64](#Upload-a-File-as-base64)
   - [Upload](#Upload)
+  - [Upload a Base64 Encoded File](#Upload-a-Base64-Encoded-File)
 - [Log](#Log)
   - [Find](#Find)
 - [Multilingual](#Multilingual)
@@ -705,6 +736,33 @@ ___
 | data.uuid | `string` |  |
 | data.status | `string` | <p><code>&quot;server&quot;</code> if using a webix uploader</p> |
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
+  
+<a name='Upload-a-Base64-Encoded-File'></a>
+### Upload a Base64 Encoded File - `POST` /file/upload/base64/:objID/:fieldID
+[Back to top](#top)
+
+
+**Permission:** `User`
+\- Any authenticated user
+#### Parameters
+| Name     | Type       | Location    |  Description            |
+|----------|------------|-------------|-------------------------|
+| objID | `uuid` | route |  |
+| fieldID | `uuid` | route |  |
+| file | `string` | body |  |
+| fileID | `uuid` | body |  |
+| fileName | `string` | body |  |
+| type | `string` | body |  |
+| uploadedBy | `string` | body |  |
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| data | `Object` |  |
+| data.uuid | `string` |  |
+| status | `string` | <p><code>&quot;success&quot;</code></p> |
 
 <a name='Log'></a> 
 ## Log
@@ -1129,33 +1187,4 @@ ___
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
 | data | `object` |  |
 | data.done | `boolean` | <p><code>true</code></p> |
-
-
-
-  
-<a name='Upload'></a>
-### Upload - `POST` /file/upload/base64/:objID/:fieldID
-[Back to top](#top)
-
-
-#### Parameters
-| Name     | Type       | Location    |  Description            |
-|----------|------------|-------------|-------------------------|
-| objID | `uuid` | route |  |
-| fieldID | `uuid` | route |  |
-| file | `string` | body |  |
-| fileID | `uuid` | body |  |
-| fileName | `string` | body |  |
-| size | `number` | body |  |
-| type | `string` | body |  |
-| uploadedBy | `string` | body |  |
-#### Responses
-
-##### Success response - `200`
-
-| Name     | Type       | Description                           |
-|----------|------------|---------------------------------------|
-| data | `Object` |  |
-| data.uuid | `string` |  |
-| status | `string` | <p><code>&quot;success&quot;</code></p> |
 
