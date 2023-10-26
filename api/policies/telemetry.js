@@ -1,7 +1,7 @@
 const Sentry = require("@sentry/node");
 
 module.exports = async (req, res, next) => {
-   if (!process.env.SENTRY) return next();
+   if (!sails.config.custom.sentry) return next();
    const options = { user: ["id", "username"], transaction: "path" };
    await waitCallback(Sentry.Handlers.requestHandler(options), req, res);
    const path = req.route.path;
