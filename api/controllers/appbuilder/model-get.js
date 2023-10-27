@@ -46,6 +46,10 @@ var inputParams = {
    // limit: the number or entries to return.
 
    disableMinifyRelation: { optional: true },
+
+   //// For API Object: to pull data from the URL
+   isAPI: { optional: true },
+   url: { optional: true },
 };
 
 // make sure our BasePath is created:
