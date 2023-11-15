@@ -5,6 +5,7 @@
 const path = require("path");
 
 const Mysql = require("mysql"); // our  {DB Connection}
+
 var config = require(path.join(__dirname, "config", "local.js"));
 
 var displayCount = 0;

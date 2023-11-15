@@ -8,8 +8,14 @@
  * https://sailsjs.com/docs/concepts/policies
  */
 
-var defaultStack = ["abUtils", "authTenant", "authUser", "authSwitcheroo"];
-var noAuth = ["abUtils", "authTenant"];
+var defaultStack = [
+   "abUtils",
+   "telemetry",
+   "authTenant",
+   "authUser",
+   "authSwitcheroo",
+];
+var noAuth = ["abUtils", "telemetry", "authTenant"];
 
 module.exports.policies = {
    SiteController: {

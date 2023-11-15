@@ -25,6 +25,9 @@ module.exports = function (req, res) {
    req.ab.serviceRequest(
       "definition_manager.definitionsForRoles",
       jobData,
+      {
+         stringResult: true,
+      },
       (err, result) => {
          if (err) {
             console.log("err", err);
@@ -36,7 +39,7 @@ module.exports = function (req, res) {
          // Cache for 1 year (if definitons are changes this will be requested
          // with a new hash in the query param).
          res.set("Cache-Control", "max-age=31536000");
-         res.send(`window.definitions=${JSON.stringify(result)}`);
+         res.send(`window.definitions=${result}`);
       }
    );
 };
