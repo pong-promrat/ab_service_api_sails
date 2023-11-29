@@ -40,8 +40,8 @@ module.exports = function (req, res) {
             req.ab.serviceRequest(
                "definition_manager.mobile-config",
                jobData,
-               { skipParse: true },
-               // skipParse: true reduces the work of parsing the data
+               { stringResult: true },
+               // stringResult: true reduces the work of parsing the data
                // and then restringifying it back into the res.view()
                // configData here will be the stringify() version of the data
                (err, configData) => {
@@ -59,8 +59,8 @@ module.exports = function (req, res) {
             req.ab.serviceRequest(
                "definition_manager.export-app",
                jobData,
-               { skipParse: true },
-               // skipParse: true reduces the work of parsing the data
+               { stringResult: true },
+               // stringResult: true reduces the work of parsing the data
                // and then restringifying it back into the res.view()
                // definitionData here will be the stringify() version of the data
                (err, definitionData) => {
