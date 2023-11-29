@@ -12,7 +12,7 @@ function isNumeric(n) {
    return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-const URL = require("url");
+// const URL = require("url");
 
 module.exports = (req, res, next) => {
    // there are several ways a Tenant can be specified:
@@ -40,6 +40,18 @@ module.exports = (req, res, next) => {
       return;
    }
 
+   // Treat localhost as admin for development.
+   if (
+      process.env.NODE_ENV != "production" &&
+      (req.hostname == "localhost" || req.hostname == "127.0.0.1") &&
+      !req.query.tenant
+   ) {
+      req.ab.log("authTenant -> req from localhost -> use admin tenant");
+      req.ab.tenantID = "admin";
+      next();
+      return;
+   }
+
    // - url: prefix :  http://fcf.baseurl.org
    //   once we resolve the url prefix, we will store the tenant id in the
    //   session.
@@ -61,6 +73,9 @@ module.exports = (req, res, next) => {
       var prefix = parts.shift();
 
       //// DEV TESTING:
+      if (process.env.NODE_ENV == "development" && req.query.tenant) {
+         prefix = req.query.tenant;
+      }
       //// uncomment the initConfig.js && index.ejs entries for these values
       //// to test url prefix route resolutions:
       // if (req.headers && req.headers["tenant-test-prefix"]) {
@@ -76,9 +91,9 @@ module.exports = (req, res, next) => {
          next();
          return;
       }
-      
+
       // should we try to perform a lookup by the prefix?
-      if (prefix != "localhost" && !isNumeric(prefix)) {
+      if (!isNumeric(prefix)) {
          req.ab.log(`authTenant -> tenant_manager.find(${prefix})`);
 
          var jobData = {
@@ -90,7 +105,7 @@ module.exports = (req, res, next) => {
             jobData,
             (err, results) => {
                if (err) {
-                  next(err);
+                  res.notFound(err);
                   return;
                }
                if (results && results.uuid) {
@@ -104,19 +119,22 @@ module.exports = (req, res, next) => {
 
                   // be sure to set the session:
                   // req.session.tenant_id = req.ab.tenantID;
-               }
 
-               next();
+                  next();
+                  return;
+               }
+               res.notFound(`We couldn't find the tenant '${prefix}'.`);
+               return;
             }
          );
       } else {
          req.ab.log("authTenant -> no valid tenant options");
          // no Tenant ID known for this request
-         // just keep going:
-         next();
+         res.notFound(`We couldn't find a valid tenant.`);
+         return;
       }
    } else {
       req.ab.log("No hostname??");
-      next();
+      res.notFound(`We couldn't find a valid tenant.`);
    }
 };
