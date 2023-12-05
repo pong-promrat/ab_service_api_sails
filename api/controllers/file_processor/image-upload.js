@@ -134,6 +134,7 @@ module.exports = function (req, res) {
                type: fileEntry.type,
                fileName: fileEntry.filename,
                uploadedBy: req.ab.userDefaults().username,
+               convertToExtensions: ["webp"],
             };
 
             // pass the request off to the uService:
