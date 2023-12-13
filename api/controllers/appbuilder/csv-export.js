@@ -38,7 +38,6 @@ module.exports = function (req, res) {
    // create a new job for the service
    let jobData = {
       viewID: req.ab.param("viewID"),
-      longRequest: true,
    };
 
    if (req.ab.param("where")) {
@@ -53,65 +52,70 @@ module.exports = function (req, res) {
    }
 
    // pass the request off to the uService:
-   req.ab.serviceRequest("appbuilder.csv-export", jobData, (err, results) => {
-      if (err) {
-         res.ab.error(err);
-         return;
-      }
-
-      req.ab.performance.mark("csvQuery");
-      req.ab.log("--> connecting to mysql");
-
-      let outputFilename = results.fileName;
-
-      let dataStore = sails.getDatastore("appbuilder");
-      let tenantConn = {};
-      Object.keys(dataStore.config).forEach((k) => {
-         tenantConn[k] = dataStore.config[k];
-      });
-      tenantConn.database = results.tenantDB;
-
-      let connection = dataStore.driver.mysql.createConnection(tenantConn);
-      connection.connect();
-
-      // NOTE: for streaming, do not send a callback
-      req.ab.log(`appbuilder.csv-export: query to DB ${results.SQL}`);
-      let query = connection.query(results.SQL);
-
-      let hasErrored = false;
-
-      // Set res header
-      res.setHeader(
-         "Content-disposition",
-         `attachment; filename=${outputFilename}.csv`
-      );
-
-      // stream the results:
-      query
-         .on("error", (err) => {
-            req.ab.notify("developer", err, {
-               context: "api_sails: csv-export: error running sql",
-               results,
-            });
+   req.ab.serviceRequest(
+      "appbuilder.csv-export",
+      jobData,
+      { longRequest: true },
+      (err, results) => {
+         if (err) {
             res.ab.error(err);
-            hasErrored = true;
-         })
-         .on("result", (row) => {
-            // console.log(row);
-            res.write(
-               `${Object.values(row)
-                  .map((r) => `"${r != null ? r : ""}"`) // To encode a quote, use "" to support , (comma) in text
-                  .join(",")}\r\n`
-            );
-         })
-         .on("end", () => {
-            req.ab.performance.measure("csvQuery");
-            req.ab.log("--> end connection.");
-            if (!hasErrored) {
-               res.end();
-            }
-            connection.end();
-            req.ab.performance.log(["appbuilder.csv-export", "csvQuery"]);
+            return;
+         }
+
+         req.ab.performance.mark("csvQuery");
+         req.ab.log("--> connecting to mysql");
+
+         let outputFilename = results.fileName;
+
+         let dataStore = sails.getDatastore("appbuilder");
+         let tenantConn = {};
+         Object.keys(dataStore.config).forEach((k) => {
+            tenantConn[k] = dataStore.config[k];
          });
-   });
+         tenantConn.database = results.tenantDB;
+
+         let connection = dataStore.driver.mysql.createConnection(tenantConn);
+         connection.connect();
+
+         // NOTE: for streaming, do not send a callback
+         req.ab.log(`appbuilder.csv-export: query to DB ${results.SQL}`);
+         let query = connection.query(results.SQL);
+
+         let hasErrored = false;
+
+         // Set res header
+         res.setHeader(
+            "Content-disposition",
+            `attachment; filename=${outputFilename}.csv`
+         );
+
+         // stream the results:
+         query
+            .on("error", (err) => {
+               req.ab.notify("developer", err, {
+                  context: "api_sails: csv-export: error running sql",
+                  results,
+               });
+               res.ab.error(err);
+               hasErrored = true;
+            })
+            .on("result", (row) => {
+               // console.log(row);
+               res.write(
+                  `${Object.values(row)
+                     .map((r) => `"${r != null ? r : ""}"`) // To encode a quote, use "" to support , (comma) in text
+                     .join(",")}\r\n`
+               );
+            })
+            .on("end", () => {
+               req.ab.performance.measure("csvQuery");
+               req.ab.log("--> end connection.");
+               if (!hasErrored) {
+                  res.end();
+               }
+               connection.end();
+               req.ab.performance.log(["appbuilder.csv-export", "csvQuery"]);
+            });
+      }
+   );
 };

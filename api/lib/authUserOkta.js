@@ -66,7 +66,7 @@ module.exports = {
                               if (err) {
                                  req.ab.notify.developer(err, {
                                     context: "Error from user-find",
-                                    email
+                                    email,
                                  });
                                  //ok(err);
                                  ok();
@@ -108,16 +108,16 @@ module.exports = {
                                  {
                                     objectID:
                                        "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
-                                    longRequest: true, // for ABServiceRequest
                                     values: {
                                        uuid: AB.uuid(),
                                        username,
                                        email,
                                        password: "Okta",
                                        languageCode: "en",
-                                       isActive: 1
+                                       isActive: 1,
                                     },
                                  },
+                                 { longRequest: true },
                                  (err, user) => {
                                     // Duplicate user name
                                     if (err && err.code == "ER_DUP_ENTRY") {

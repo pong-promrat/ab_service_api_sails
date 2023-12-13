@@ -79,13 +79,13 @@ module.exports = function (req, res) {
                   // create a new job for the service
                   let jobData = {
                      json,
-                     longRequest: true, // Tell cote to wait longer as import takes time.
                   };
 
                   // pass the request off to the uService:
                   req.ab.serviceRequest(
                      "definition_manager.json-import",
                      jobData,
+                     { longRequest: true },
                      (err /*, results */) => {
                         if (err) {
                            req.ab.log("Error in json-import : ", err);
