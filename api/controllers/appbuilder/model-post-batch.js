@@ -90,9 +90,6 @@ function submitJob(req, objectID, values) {
       let jobData = {
          objectID,
          values,
-         // NOTE: When there are a lot of inserting row, then It will take more time to response.
-         // Set .longRequest to avoid timeout error.
-         longRequest: true,
          // NOTE: disable to broadcast slate.update because it spend long time to process. It might cause to socket timeout.
          disableStale: true,
          // relocate the rest of the params as .values
@@ -101,6 +98,11 @@ function submitJob(req, objectID, values) {
       req.ab.serviceRequest(
          "appbuilder.model-post",
          jobData,
+         {
+            // NOTE: When there are a lot of inserting row, then It will take more time to response.
+            // Set .longRequest to avoid timeout error.
+            longRequest: true,
+         },
          (err, newItem) => {
             if (err) {
                req.ab.log("api_sails:model-post-batch:error:", err);

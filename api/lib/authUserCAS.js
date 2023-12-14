@@ -66,7 +66,7 @@ module.exports = {
                                  ok();
                                  req.ab.notify.developer(err, {
                                     context: "Error from user-find",
-                                    authName
+                                    authName,
                                  });
                                  return;
                               }
@@ -82,12 +82,17 @@ module.exports = {
                         // Skip this step if user already exists
                         if (result) return ok();
 
-                        let email = profile.defaultmail || profile.email || profile.emails || uuid;
+                        let email =
+                           profile.defaultmail ||
+                           profile.email ||
+                           profile.emails ||
+                           uuid;
                         if (Array.isArray(email)) {
                            email = email[0];
                         }
 
-                        let language = profile.language || profile.languages || "en";
+                        let language =
+                           profile.language || profile.languages || "en";
                         if (Array.isArray(language)) {
                            language = language[0];
                         }
@@ -117,7 +122,6 @@ module.exports = {
                                  {
                                     objectID:
                                        "228e3d91-5e42-49ec-b37c-59323ae433a1", // site_user
-                                    longRequest: true, // for ABServiceRequest
                                     values: {
                                        // Generate a new random UUID.
                                        // Can't put authname here because
@@ -129,9 +133,10 @@ module.exports = {
                                        password: "CAS",
                                        languageCode: language,
                                        isActive: 1,
-                                       authname: authName
+                                       authname: authName,
                                     },
                                  },
+                                 { longRequest: true },
                                  (err, user) => {
                                     // Duplicate user name
                                     if (err && err.code == "ER_DUP_ENTRY") {

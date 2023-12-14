@@ -34,19 +34,23 @@ module.exports = function (req, res) {
    // create a new job for the service
    const jobData = {
       reportKey: req.ab.param("key"),
-      longRequest: true,
    };
 
    const data = req.allParams();
    delete data.key;
    jobData.data = data;
    // pass the request off to the uService:
-   req.ab.serviceRequest("custom_reports.report", jobData, (err, results) => {
-      if (err) {
-         res.ab.error(err);
-         return;
+   req.ab.serviceRequest(
+      "custom_reports.report",
+      jobData,
+      { longRequest: true },
+      (err, results) => {
+         if (err) {
+            res.ab.error(err);
+            return;
+         }
+         res.status("200");
+         res.send(results);
       }
-      res.status("200");
-      res.send(results);
-   });
+   );
 };
