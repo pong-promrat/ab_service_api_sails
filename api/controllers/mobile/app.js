@@ -57,7 +57,7 @@ module.exports = function (req, res) {
          (done) => {
             // pass the request off to the uService:
             req.ab.serviceRequest(
-               "definition_manager.export-app",
+               "definition_manager.definitions-mobile-app",
                jobData,
                { stringResult: true },
                // stringResult: true reduces the work of parsing the data
