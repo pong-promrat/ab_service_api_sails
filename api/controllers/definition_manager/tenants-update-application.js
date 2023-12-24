@@ -102,8 +102,8 @@ module.exports = function (req, res) {
                {
                   applicationUUID,
                   data: require(filename),
-                  longRequest: true, // Tell cote to wait longer as import takes time.
                },
+               { longRequest: true },
                (error /*, results */) => {
                   if (error) {
                      req.ab.log("Error in tenants-update-application: ", error);
