@@ -24,6 +24,7 @@ module.exports.policies = {
    },
 
    "mobile/app": noAuth,
+   "mobile/favicon": noAuth,
 
    /***************************************************************************
     *                                                                          *

@@ -19,9 +19,24 @@ module.exports = function (req, res) {
    req.ab.log("mobile/version():");
 
    var user = req.ab.user;
-   if (user) {
-      res.ab.success({ version: "1.0.0" });
-   } else {
-      res.ab.reauth();
-   }
+   if (!user) res.ab.reauth();
+
+   let appID = req.ab.param("ID");
+   // create a new job for the service
+   let jobData = {
+      ID: appID,
+   };
+
+   // pass the request off to the uService:
+   req.ab.serviceRequest(
+      "definition_manager.mobile-config",
+      jobData,
+      (err, configData) => {
+         if (err) {
+            res.ab.error(err, 500);
+            return;
+         }
+         res.ab.success({ version: configData.version });
+      }
+   );
 };

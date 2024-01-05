@@ -17,13 +17,9 @@ const async = require("async");
 module.exports = function (req, res) {
    req.ab.log("mobile/app():");
 
-   var user = req.ab.user;
+   // var user = req.ab.user;
    let appID = req.ab.param("ID");
    let tenantID = req.ab.tenantID;
-   if (!tenantID || tenantID == "??") {
-      tenantID = req.ab.param("tenantID");
-      req.ab.tenantID = tenantID;
-   }
 
    let config = null;
    let definitions = null;
@@ -57,7 +53,7 @@ module.exports = function (req, res) {
          (done) => {
             // pass the request off to the uService:
             req.ab.serviceRequest(
-               "definition_manager.definitions-mobile-app",
+               "definition_manager.definitions-app",
                jobData,
                { stringResult: true },
                // stringResult: true reduces the work of parsing the data

@@ -17,11 +17,11 @@
 module.exports = function (req, res) {
    req.ab.log("mobile/favicon():");
 
-   var user = req.ab.user;
-   if (!user) {
-      res.ab.reauth();
-      return;
-   }
+   // var user = req.ab.user;
+   // if (!user) {
+   //    res.ab.reauth();
+   //    return;
+   // }
    var url;
    // if (req.ab.tenantSet()) {
    //    url = `/assets/tenant/${req.ab.tenantID}/favicon.ico`;

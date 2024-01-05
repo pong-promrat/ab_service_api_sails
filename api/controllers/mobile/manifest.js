@@ -17,7 +17,7 @@
 module.exports = function (req, res) {
    req.ab.log("mobile/manifest():");
 
-   let tenantID = req.ab.param("tenantID");
+   let tenantID = req.ab.tenantID; // <-- the validated ID from authTenant
    let appID = req.ab.param("ID");
 
    req.ab.log(`t[${tenantID}] a[${appID}]`);
