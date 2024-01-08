@@ -157,4 +157,14 @@ module.exports.routes = {
    // "/sg": "SiteController.sg", // testing out the SG library
    // relay routes:
    "get /relay/user-qr": "relay/user-qr",
+
+   //
+   // Mobile PWA
+   //
+   "get /mobile/whoami": "auth/whoami",
+   "get /mobile/version/:ID": "mobile/version",
+   "get /mobile/app/:ID/favicon.png": "mobile/favicon",
+   "get /mobile/app/:tenantID/:ID/manifest.json": "mobile/manifest",
+   "get /mobile/app/:tenantID/:ID": "mobile/app",
+   "get /mobile/qr/:ID": "mobile/qr",
 };

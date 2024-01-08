@@ -188,7 +188,8 @@ module.exports = async (req, res, next) => {
          uuid: tenantID,
       });
 
-      tenantOptionsCache[tenantID] = JSON.parse(options);
+      tenantOptionsCache[tenantID] =
+         typeof options === "object" ? options : JSON.parse(options);
    }
    const { authType, url } = tenantOptionsCache[tenantID];
    // Send the request to authenticatate using the tenant's setting
