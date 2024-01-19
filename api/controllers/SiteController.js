@@ -55,6 +55,64 @@ module.exports = {
       res.redirect(url);
    },
 
+   configInbox: async function (req, res) {
+      var configInbox = null;
+      // {array} [ {ABDefinition}, {ABDefinition}, ...]
+      // The list of ABxxxx definitions to send to the Web client to create
+      // the applications to display.
+
+      var configInboxMeta = null;
+      // {array} [ { appData}, ...]
+      // Inbox items need a minimum set of Application / Process data to
+      // display correctly.  It is possible a User might have an Inbox Item
+      // related to an Application they do not have Rights to access, so we
+      // need to send this data along with the configuration data.
+
+      let user = req.ab.user;
+
+      var jobData = {
+         users: [user.username],
+         roles: user.SITE_ROLE || [],
+      };
+
+      // pass the request off to the uService:
+      await new Promise((done, error) => {
+         req.ab.serviceRequest(
+            "process_manager.inbox.find",
+            jobData,
+            (err, results) => {
+               if (err) {
+                  req.ab.log("error inbox.find:", err);
+                  error(err);
+                  return;
+               }
+               configInbox = results;
+               // done();
+               // now ask for the inbox Meta data
+               var ids = results.map((r) => r.definition).filter((r) => r);
+               req.ab.serviceRequest(
+                  "process_manager.inbox.meta",
+                  { ids },
+                  (err, meta) => {
+                     if (err) {
+                        req.ab.log("error inbox.meta:", err);
+                        error(err);
+                        return;
+                     }
+                     configInboxMeta = meta;
+                     done();
+                  }
+               );
+            }
+         );
+      });
+
+      res.ab.success({
+         inbox: configInbox,
+         inboxMeta: configInboxMeta,
+      });
+   },
+
    configSite: function (req, res) {
       req.ab.serviceRequest(
          "tenant_manager.config-site",
