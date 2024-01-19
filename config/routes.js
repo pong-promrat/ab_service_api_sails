@@ -173,5 +173,5 @@ module.exports.routes = {
    "get /config/site": "SiteController.configSite",
    "get /config/user": "SiteController.configUser",
    "get /config/user/real": "SiteController.configUserReal",
-   "get /inbox/config": "SiteController.configInbox",
+   "get /config/inbox": "SiteController.configInbox",
 };
