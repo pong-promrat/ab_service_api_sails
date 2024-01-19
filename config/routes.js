@@ -167,4 +167,10 @@ module.exports.routes = {
    "get /mobile/app/:tenantID/:ID/manifest.json": "mobile/manifest",
    "get /mobile/app/:tenantID/:ID": "mobile/app",
    "get /mobile/qr/:ID": "mobile/qr",
+
+   // just testing our config-site :
+   "get /config/preloader": "SiteController.preloader",
+   "get /config/site": "SiteController.configSite",
+   "get /config/user": "SiteController.configUser",
+   "get /config/user/real": "SiteController.configUserReal",
 };
