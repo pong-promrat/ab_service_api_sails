@@ -172,6 +172,5 @@ module.exports.routes = {
    "get /config/preloader": "SiteController.preloader",
    "get /config/site": "SiteController.configSite",
    "get /config/user": "SiteController.configUser",
-   "get /config/user/real": "SiteController.configUserReal",
    "get /config/inbox": "SiteController.configInbox",
 };
