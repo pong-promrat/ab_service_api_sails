@@ -5,9 +5,54 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const async = require("async");
+const AB = require("@digiserve/ab-utils");
+const ReqAB = AB.reqApi({}, {}, {});
+ReqAB.jobID = "api_cache_buster";
+ReqAB.serviceResponder("api_sails.site-cache-stale", (req, cb) => {
+   // Respond to warnings that our cached site configuration information is
+   // no longer valid.
+
+   // Things that breaks the cache:
+   //    language
+   //    tenants
+   //    users
+   //    scopes
+   //    roles
+
+   let tenantID = req.tenantID;
+
+   console.log(":::::");
+   console.log(`::::: site.cache.stale received for tenant[${tenantID}]`);
+   console.log(":::::");
+
+   if (tenantID == "all") {
+      CachePreloaderSite = {};
+      CachePreloaderSiteVersion = {};
+   } else {
+      delete CachePreloaderSite[tenantID];
+      delete CachePreloaderSiteVersion[tenantID];
+   }
+   cb(null);
+});
+
+ReqAB.serviceResponder("api_sails.user-cache-stale", (req, cb) => {
+   // Respond to warnings that our cached site configuration information is
+   // no longer valid.
+
+   let userUUID = req.param("userUUID");
+
+   console.log(":::::");
+   console.log(
+      `::::: user.cache.stale received for tenant[${req.tenantID}]->user[${userUUID}]`
+   );
+   console.log(":::::");
+
+   delete CachePreloaderUserVersion[req.tenantID][userUUID];
+   cb(null);
+});
 
 var CachePreloaderSite = {
-   /* tenantID : { ConfigSite } */
+   /* tenantID: { ConfigSite }, */
 };
 
 var CachePreloaderSiteVersion = {
@@ -113,59 +158,70 @@ module.exports = {
       });
    },
 
-   configSite: function (req, res) {
-      req.ab.serviceRequest(
-         "tenant_manager.config-site",
-         { relay: sails.config.relay?.enable ?? false },
-         {
-            stringResult: true,
-         },
-         (err, result) => {
-            if (err) {
-               return res.ab.error(err);
-            }
-            // Send as JS
-            res.set("Content-Type", "text/javascript");
-            // Cache for 1 year (if definitons are changed this will be requested
-            // with a new hash in the query param).
-            res.set("Cache-Control", "max-age=31536000");
-            res.send(`window.__AB_Config=${result}`);
-         }
-      );
+   configSite: async function (req, res) {
+      let config = CachePreloaderSite[req.ab.tenantID];
+      if (!config) {
+         await new Promise((resolve) => {
+            req.ab.serviceRequest(
+               "tenant_manager.config-site",
+               { relay: sails.config.relay?.enable ?? false },
+               {
+                  stringResult: true,
+               },
+               (err, result) => {
+                  if (err) {
+                     return res.ab.error(err);
+                  }
+
+                  config = result;
+                  CachePreloaderSite[req.ab.tenantID] = config;
+                  resolve();
+               }
+            );
+         });
+      }
+
+      // Send as JS
+      res.set("Content-Type", "text/javascript");
+      // Cache for 1 year (if definitons are changed this will be requested
+      // with a new hash in the query param).
+      res.set("Cache-Control", "max-age=31536000");
+      res.send(`window.__AB_Config=${config}`);
    },
 
-   configUser: function (req, res) {
-      // simplify the user data:
-      let userSimple = UserSimple(req);
+   configUser: async function (req, res) {
+      let user = null;
+      if (req.ab.user) {
+         // simplify the user data:
+         let userSimple = UserSimple(req);
 
-      var jobData = {
-         user: userSimple,
-      };
-      req.ab.serviceRequest(
-         "user_manager.config",
-         jobData,
-         {
-            stringResult: true,
-         },
-         (err, results) => {
-            if (err) {
-               return res.ab.error(err);
-            }
+         var jobData = {
+            user: userSimple,
+         };
+         await new Promise((resolve) => {
+            req.ab.serviceRequest(
+               "user_manager.config",
+               jobData,
+               {
+                  stringResult: true,
+               },
+               (err, results) => {
+                  if (err) {
+                     return res.ab.error(err);
+                  }
 
-            // try {
-            //    results = JSON.stringify(results);
-            // } catch (e) {
-            //    // just return results then.
-            // }
-
-            // Send as JS
-            res.set("Content-Type", "text/javascript");
-            // Cache for 1 year (if definitons are changed this will be requested
-            // with a new hash in the query param).
-            res.set("Cache-Control", "max-age=31536000");
-            res.send(`window.__AB_Config_User=${results}`);
-         }
-      );
+                  user = results;
+                  resolve();
+               }
+            );
+         });
+      }
+      // Send as JS
+      res.set("Content-Type", "text/javascript");
+      // Cache for 1 year (if definitons are changed this will be requested
+      // with a new hash in the query param).
+      res.set("Cache-Control", "max-age=31536000");
+      res.send(`window.__AB_Config_User=${user}`);
    },
 
    // configUserReal: function (req, res) {
@@ -522,22 +578,28 @@ module.exports = {
       );
 
       let configUserVersion;
-      allLookups.push(
-         await cachedLookupUserVersion(req).then((version) => {
-            configUserVersion = version;
-         })
-      );
-
       let configMyAppsVersion;
-      if (req.ab.isSwitcherood()) {
-         // should be a unique enough to bust the cache
-         configMyAppsVersion = req.ab.jobID;
+      if (!req.ab.user) {
+         // if we are not logged in: we don't need to perform lookups:
+         configUserVersion = "unknown";
+         configMyAppsVersion = "unknown";
       } else {
          allLookups.push(
-            await lookupMyAppVersion(req).then((version) => {
-               configMyAppsVersion = version;
+            await cachedLookupUserVersion(req).then((version) => {
+               configUserVersion = version;
             })
          );
+
+         if (req.ab.isSwitcherood()) {
+            // should be a unique enough to bust the cache
+            configMyAppsVersion = req.ab.jobID;
+         } else {
+            allLookups.push(
+               await lookupMyAppVersion(req).then((version) => {
+                  configMyAppsVersion = version;
+               })
+            );
+         }
       }
 
       let configUserRealData = req.ab.isSwitcherood() ? req.ab.userReal : 0;
@@ -621,7 +683,7 @@ async function cachedLookupUserVersion(req) {
    return await cachedLookup(
       req,
       UserCache,
-      req.ab.user.uuid,
+      req.ab.user?.uuid || "unknown",
       { user: req.ab.user },
       "user_manager.config-user-version"
    );
