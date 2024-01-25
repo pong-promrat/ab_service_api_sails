@@ -5,63 +5,64 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const async = require("async");
-const AB = require("@digiserve/ab-utils");
-const ReqAB = AB.reqApi({}, {}, {});
-ReqAB.jobID = "api_cache_buster";
-ReqAB.serviceResponder("api_sails.site-cache-stale", (req, cb) => {
-   // Respond to warnings that our cached site configuration information is
-   // no longer valid.
+const Cache = require("../lib/cacheManager");
+// const AB = require("@digiserve/ab-utils");
+// const ReqAB = AB.reqApi({}, {}, {});
+// ReqAB.jobID = "api_cache_buster";
+// ReqAB.serviceResponder("api_sails.site-cache-stale", (req, cb) => {
+//    // Respond to warnings that our cached site configuration information is
+//    // no longer valid.
 
-   // Things that breaks the cache:
-   //    language
-   //    tenants
-   //    users
-   //    scopes
-   //    roles
+//    // Things that breaks the cache:
+//    //    language
+//    //    tenants
+//    //    users
+//    //    scopes
+//    //    roles
 
-   let tenantID = req.tenantID;
+//    let tenantID = req.tenantID;
 
-   console.log(":::::");
-   console.log(`::::: site.cache.stale received for tenant[${tenantID}]`);
-   console.log(":::::");
+//    console.log(":::::");
+//    console.log(`::::: site.cache.stale received for tenant[${tenantID}]`);
+//    console.log(":::::");
 
-   if (tenantID == "all") {
-      CachePreloaderSite = {};
-      CachePreloaderSiteVersion = {};
-   } else {
-      delete CachePreloaderSite[tenantID];
-      delete CachePreloaderSiteVersion[tenantID];
-   }
-   cb(null);
-});
+//    if (tenantID == "all") {
+//       CachePreloaderSite = {};
+//       CachePreloaderSiteVersion = {};
+//    } else {
+//       delete CachePreloaderSite[tenantID];
+//       delete CachePreloaderSiteVersion[tenantID];
+//    }
+//    cb(null);
+// });
 
-ReqAB.serviceResponder("api_sails.user-cache-stale", (req, cb) => {
-   // Respond to warnings that our cached site configuration information is
-   // no longer valid.
+// ReqAB.serviceResponder("api_sails.user-cache-stale", (req, cb) => {
+//    // Respond to warnings that our cached site configuration information is
+//    // no longer valid.
 
-   let userUUID = req.param("userUUID");
+//    let userUUID = req.param("userUUID");
 
-   console.log(":::::");
-   console.log(
-      `::::: user.cache.stale received for tenant[${req.tenantID}]->user[${userUUID}]`
-   );
-   console.log(":::::");
+//    console.log(":::::");
+//    console.log(
+//       `::::: user.cache.stale received for tenant[${req.tenantID}]->user[${userUUID}]`
+//    );
+//    console.log(":::::");
 
-   delete CachePreloaderUserVersion[req.tenantID][userUUID];
-   cb(null);
-});
+//    delete CachePreloaderUserVersion[req.tenantID][userUUID];
+//    cb(null);
+// });
 
-var CachePreloaderSite = {
-   /* tenantID: { ConfigSite }, */
-};
+// var CachePreloaderSite = {
+//    /* tenantID: { ConfigSite }, */
+// };
 
-var CachePreloaderSiteVersion = {
-   /* tenantID : "CurrentSiteConfigHash" */
-};
+// var CachePreloaderSiteVersion = {
+//    /* tenantID : "CurrentSiteConfigHash" */
+// };
 
-var CachePreloaderUserVersion = {
-   /* tenantID : {  user.uuid : "CurrentUserConfigHash" } */
-};
+// var CachePreloaderUserVersion = {
+//    /* tenantID : {  user.uuid : "CurrentUserConfigHash" } */
+// };
 
 function UserSimple(req) {
    let sUser = {};
@@ -159,7 +160,7 @@ module.exports = {
    },
 
    configSite: async function (req, res) {
-      let config = CachePreloaderSite[req.ab.tenantID];
+      let config = Cache.PreloaderSite(req.ab.tenantID);
       if (!config) {
          await new Promise((resolve) => {
             req.ab.serviceRequest(
@@ -174,7 +175,7 @@ module.exports = {
                   }
 
                   config = result;
-                  CachePreloaderSite[req.ab.tenantID] = config;
+                  Cache.PreloaderSite(req.ab.tenantID, config);
                   resolve();
                }
             );
@@ -664,7 +665,7 @@ async function cachedLookupSiteVersion(req) {
 
    return await cachedLookup(
       req,
-      CachePreloaderSiteVersion,
+      Cache.PreloaderSiteVersion(),
       tenantID,
       {},
       "tenant_manager.config-site-version"
@@ -676,6 +677,7 @@ async function cachedLookupUserVersion(req) {
       ? req.ab.tenantID
       : "notKnown";
 
+   let CachePreloaderUserVersion = Cache.PreloaderUserVersion();
    CachePreloaderUserVersion[tenantID] =
       CachePreloaderUserVersion[tenantID] || {};
    let UserCache = CachePreloaderUserVersion[tenantID];
