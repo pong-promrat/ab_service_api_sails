@@ -573,7 +573,7 @@ module.exports = {
 
       let configSiteVersion;
       allLookups.push(
-         await cachedLookupSiteVersion(req).then((version) => {
+         cachedLookupSiteVersion(req).then((version) => {
             configSiteVersion = version;
          })
       );
@@ -586,7 +586,7 @@ module.exports = {
          configMyAppsVersion = "unknown";
       } else {
          allLookups.push(
-            await cachedLookupUserVersion(req).then((version) => {
+            cachedLookupUserVersion(req).then((version) => {
                configUserVersion = version;
             })
          );
@@ -596,7 +596,7 @@ module.exports = {
             configMyAppsVersion = req.ab.jobID;
          } else {
             allLookups.push(
-               await lookupMyAppVersion(req).then((version) => {
+               lookupMyAppVersion(req).then((version) => {
                   configMyAppsVersion = version;
                })
             );

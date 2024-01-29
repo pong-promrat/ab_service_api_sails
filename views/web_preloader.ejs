@@ -47,12 +47,10 @@ async function Preload() {
 
 
    await Promise.all(allScripts);
-}
 
-// .__AB_preload  {Promise} our index.js script will await this 
-// before continuing the Bootstrap.init();  This way all resources will
-// be loaded before we start the initialization.
-window.__AB_preload = new Promise(async (resolve, reject) => {
-   await Preload();
-   resolve();
-});
+   // wait for the socket.io library to be ready, then we are good to go:
+   await window.__AB_socketReady;
+
+   window.__AB_preload_resolve();
+}
+Preload();

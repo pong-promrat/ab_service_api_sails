@@ -50,14 +50,17 @@ module.exports.bootstrap = async function (done) {
 
    // 1) perform a manual healthcheck to establish our communications with
    // our services:
+   // NOTE: sails.request() is considered an experimental feature. Keep an
+   // eye on this.
+   // https://sailsjs.com/documentation/reference/application/advanced-usage/sails-request
    sails.request("GET /healthcheck", (err, data) => {
       // 2) Pre-Cache the Various Site Config calls:
       ReqAB.serviceRequest("tenant_manager.config.list", {}, (err, results) => {
          let list = results || [];
          configTenant(list, (err) => {
-            console.log("############################################");
+            console.log("####################################################");
             console.log("###### Bootstrap Caching Site Config Complete ######");
-            console.log("############################################");
+            console.log("####################################################");
          });
       });
    });
