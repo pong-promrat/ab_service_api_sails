@@ -22,8 +22,8 @@ ReqAB.serviceResponder("api_sails.site-cache-stale", (req, cb) => {
       CachePreloaderSite = {};
       CachePreloaderSiteVersion = {};
    } else {
-      delete CachePreloaderSite[tenantID];
-      delete CachePreloaderSiteVersion[tenantID];
+      delete CachePreloaderSite?.[tenantID];
+      delete CachePreloaderSiteVersion?.[tenantID];
    }
    cb(null);
 });
@@ -40,8 +40,8 @@ ReqAB.serviceResponder("api_sails.user-cache-stale", (req, cb) => {
    );
    console.log(":::::");
 
-   delete CacheAuthUser[req.tenantID][userUUID];
-   delete CachePreloaderUserVersion[req.tenantID][userUUID];
+   delete CacheAuthUser?.[req.tenantID]?.[userUUID];
+   delete CachePreloaderUserVersion?.[req.tenantID]?.[userUUID];
    cb(null);
 });
 
