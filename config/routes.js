@@ -177,5 +177,6 @@ module.exports.routes = {
 
    // System Information
    // "get /definition/info/object/:objID": "definition_manager/information-object",
-   "get /definition/info/object/:objID/field/:ID": "definition_manager/information-field",
+   "get /definition/info/object/:objID/field/:ID":
+      "definition_manager/information-field",
 };
