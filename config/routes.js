@@ -176,6 +176,6 @@ module.exports.routes = {
    "get /config/inbox": "SiteController.configInbox",
 
    // System Information
-   // "get /information/object/:objID": "definition_manager/information-object",
-   "get /information/object/:objID/field/:ID": "definition_manager/information-field",
+   // "get /definition/info/object/:objID": "definition_manager/information-object",
+   "get /definition/info/object/:objID/field/:ID": "definition_manager/information-field",
 };

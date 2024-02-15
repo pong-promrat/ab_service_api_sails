@@ -2,7 +2,7 @@
  * definition_manager/information-field.js
  *
  *
- * url:     get / /information/object/:objID/field/:ID
+ * url:     get / /definition/info/object/:objID/field/:ID
  * header:  X-CSRF-Token : [token]
  * params:
  */
