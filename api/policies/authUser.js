@@ -137,10 +137,25 @@ const isUserKnown = (req, res, next) => {
    if (key) {
       let cachedUser = Cache.AuthUser(req.ab.tenantID, userID);
       if (cachedUser) {
-         req.ab.user = cachedUser;
-         req.ab.log(`authUser -> cached user.`);
-         next(null, cachedUser);
-         return true;
+         // Sanity Check: make sure cachedUser has ROLES assigned:
+         let roles =
+            cachedUser.SITE_ROLE__relation || cachedUser.SITE_ROLE || [];
+         if (roles.length > 0) {
+            req.ab.user = cachedUser;
+            req.ab.log(`authUser -> cached user.`);
+            next(null, cachedUser);
+            return true;
+         } else {
+            let stringUser = cachedUser;
+            try {
+               stringUser = JSON.stringify(cachedUser);
+            } catch (e) {
+               // ignore
+            }
+            req.ab.log(
+               `authUser -> cached user REJECTED: no roles assigned: ${stringUser}`
+            );
+         }
       }
 
       // make sure we have a Promise that will resolve to
