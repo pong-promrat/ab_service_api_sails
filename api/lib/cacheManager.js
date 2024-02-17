@@ -68,9 +68,9 @@ module.exports = {
       }
       CacheAuthUser[tenantID] = CacheAuthUser[tenantID] || {};
       if (typeof value === "undefined") {
-         return CacheAuthUser[tenantID][userID];
+         return JSON.parse(JSON.stringify(CacheAuthUser[tenantID][userID]));
       }
-      CacheAuthUser[tenantID][userID] = value;
+      CacheAuthUser[tenantID][userID] = JSON.parse(JSON.stringify(value));
    },
 
    PreloaderSite: function (tenantID, config) {
