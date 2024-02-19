@@ -68,9 +68,9 @@ module.exports = {
       }
       CacheAuthUser[tenantID] = CacheAuthUser[tenantID] || {};
       if (typeof value === "undefined") {
-         return JSON.parse(JSON.stringify(CacheAuthUser[tenantID][userID]));
+         return structuredClone(CacheAuthUser[tenantID][userID]);
       }
-      CacheAuthUser[tenantID][userID] = JSON.parse(JSON.stringify(value));
+      CacheAuthUser[tenantID][userID] = structuredClone(value);
    },
 
    PreloaderSite: function (tenantID, config) {
