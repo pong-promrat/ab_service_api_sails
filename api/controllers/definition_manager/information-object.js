@@ -6,6 +6,12 @@
  * header:  X-CSRF-Token : [token]
  * params:
  */
+/**
+ * @api {get} /definition/info/object/:ID Request DB Information of an object
+ * @apiGroup AppBuilder
+ * @apiPermission User
+ * @apiParam {string} ID
+ */
 
 var inputParams = {
    ID: { string: { uuid: true }, required: true },
