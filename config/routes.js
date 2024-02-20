@@ -174,4 +174,9 @@ module.exports.routes = {
    "get /config/site": "SiteController.configSite",
    "get /config/user": "SiteController.configUser",
    "get /config/inbox": "SiteController.configInbox",
+
+   // System Information
+   "get /definition/info/object/:ID": "definition_manager/information-object",
+   "get /definition/info/object/:objID/field/:ID":
+      "definition_manager/information-field",
 };
