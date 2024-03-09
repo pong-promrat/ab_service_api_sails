@@ -58,9 +58,17 @@ module.exports.bootstrap = async function (done) {
       ReqAB.serviceRequest("tenant_manager.config.list", {}, (err, results) => {
          let list = results || [];
          configTenant(list, (err) => {
-            console.log("####################################################");
-            console.log("###### Bootstrap Caching Site Config Complete ######");
-            console.log("####################################################");
+            sails.request("GET /versioncheck", (err, data) => {
+               console.log(
+                  "####################################################"
+               );
+               console.log(
+                  "###### Bootstrap Caching Site Config Complete ######"
+               );
+               console.log(
+                  "####################################################"
+               );
+            });
          });
       });
    });
