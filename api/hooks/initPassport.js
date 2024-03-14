@@ -6,6 +6,13 @@ const async = require("async");
 const passport = require("passport");
 const abUtilsPolicy = require(__dirname + "/../policies/abUtils.js");
 const tenantPolicy = require(__dirname + "/../policies/authTenant.js");
+
+const authCAS = require(__dirname + "/../lib/authUserCAS.js");
+const authLocal = require(__dirname + "/../lib/authUserLocal.js");
+const authOkta = require(__dirname + "/../lib/authUserOkta.js");
+const authToken = require(__dirname + "/../lib/authUserToken.js");
+const AB = require("@digiserve/ab-utils");
+
 const authLogger = require("../lib/authLogger.js");
 
 module.exports = function (sails) {
@@ -14,7 +21,24 @@ module.exports = function (sails) {
          if (global.AB_AUTHUSER_INIT) {
             global.AB_AUTHUSER_INIT(sails);
          } else {
-            console.warn("AB_AUTHUSER_INIT was not available.");
+            /** @TODO: do I need this? */
+            const reqApi = AB.reqApi({}, {});
+            /* this is a common req.ab instance for performing user lookups */
+
+            // store the full user in session
+            passport.serializeUser((user, done) => done(user));
+            passport.deserializeUser((user, done) => done(user));
+
+            // Passport Strategies:
+            authLocal.init(reqApi);
+            authToken.init(reqApi);
+            if (sails.config.cas?.enabled) {
+               authCAS.init(reqApi);
+            }
+            // Okta auth
+            if (sails.config.okta?.enabled) {
+               authOkta.init(reqApi);
+            }
          }
       },
 
@@ -71,7 +95,7 @@ module.exports = function (sails) {
                         res.serverError(err);
                         authLogger(req, "Okta auth error?");
                         req.ab.notify.developer(err, {
-                           context: "Failed to authenticate user"
+                           context: "Failed to authenticate user",
                         });
                         return;
                      }

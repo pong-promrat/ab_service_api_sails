@@ -43,17 +43,13 @@ global.AB_AUTHUSER_INIT = (sails) => {
     * Passport Initialization:
     */
    passport.serializeUser(function (user, done) {
-      done(null, user.uuid);
+      console.log("serializeUser", user);
+      done(null, user);
    });
 
-   passport.deserializeUser(function (uuid, done) {
-      reqApi.serviceRequest("user_manager.user-find", { uuid }, (err, user) => {
-         if (err) {
-            done(err);
-            return;
-         }
-         done(null, user);
-      });
+   passport.deserializeUser(function (user, done) {
+      console.log("deserializeUser", user);
+      done(null, user);
    });
 
    // Add our strategies
@@ -185,6 +181,11 @@ const isUserKnown = (req, res, next) => {
 module.exports = async (req, res, next) => {
    await waitCallback(passportInitialize, req, res);
    await waitCallback(passportSession, req, res);
+   console.log("|--> req.isAuthenticated", req.isAuthenticated);
+   console.log("|--> req.isAuthenticated.()", req.isAuthenticated?.());
+   console.log("|--> req.user", req.user);
+   console.log("|--> req.session.user", req.session?.user);
+   console.log("|--> req.session", req.session);
    const userKnown = isUserKnown(req, res, next);
    if (userKnown) return; // User is known, so next() was already called
 

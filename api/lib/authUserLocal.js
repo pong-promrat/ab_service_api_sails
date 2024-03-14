@@ -19,13 +19,16 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 
 module.exports = {
-   init: (reqApi) => {
-      passport.use(
-         new LocalStrategy(function (email, password, done) {
-            reqApi.serviceRequest(
+   init: () => {
+      const strategy = new LocalStrategy(
+         { passReqToCallback: true, usernameField: "email" },
+         function (req, email, password, done) {
+            console.log("local auth", email);
+            req.ab.serviceRequest(
                "user_manager.user-find-password",
                { email, password },
                (err, user) => {
+                  console.log("resp", { err, user });
                   if (err) {
                      done(err);
                      return;
@@ -33,8 +36,9 @@ module.exports = {
                   done(null, user);
                }
             );
-         })
+         }
       );
+      passport.use(strategy);
    },
 
    middleware: (req, res, next) => {
@@ -45,7 +49,7 @@ module.exports = {
       // then let later processing decide what to do with
       // an unknown user.
       req.ab.log("unknown user");
-      req.ab.passport = passport;
+      // req.ab.passport = passport;
 
       // In other words, AppBuilder will display a login screen.
 
