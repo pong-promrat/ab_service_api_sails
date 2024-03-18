@@ -18,27 +18,28 @@ const authLogger = require("../lib/authLogger.js");
 module.exports = function (sails) {
    return {
       initialize: async function () {
-         if (global.AB_AUTHUSER_INIT) {
-            global.AB_AUTHUSER_INIT(sails);
-         } else {
-            /** @TODO: do I need this? */
-            const reqApi = AB.reqApi({}, {});
-            /* this is a common req.ab instance for performing user lookups */
+         /** @TODO: do I need this? */
+         const reqApi = AB.reqApi({}, {});
+         /* this is a common req.ab instance for performing user lookups */
 
-            // store the full user in session
-            passport.serializeUser((user, done) => done(user));
-            passport.deserializeUser((user, done) => done(user));
+         // store the full user in session
+         passport.serializeUser((user, done) => done(null, user.uuid));
+         // TODO; test we actually get request (appears in passport source code)
+         passport.deserializeUser((user, req, done) => {
+            sails.helpers.user
+               .findWithCache(req, req.ab.tenantID, user)
+               .then((user) => done(user));
+         });
 
-            // Passport Strategies:
-            authLocal.init(reqApi);
-            authToken.init(reqApi);
-            if (sails.config.cas?.enabled) {
-               authCAS.init(reqApi);
-            }
-            // Okta auth
-            if (sails.config.okta?.enabled) {
-               authOkta.init(reqApi);
-            }
+         // Passport Strategies:
+         authLocal.init(reqApi);
+         authToken.init(reqApi);
+         if (sails.config.cas?.enabled) {
+            authCAS.init(reqApi);
+         }
+         // Okta auth
+         if (sails.config.okta?.enabled) {
+            authOkta.init(reqApi);
          }
       },
 

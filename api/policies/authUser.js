@@ -15,8 +15,13 @@
  * The only time the session info is set is during the auth/login.js
  * routine.  After a successful login, the session.user_id is set.
  */
-
-// A. Importing code while node.js starts up
+/**
+ * TODO
+ * - [ ] refactor policy to only check login
+ * - [ ] redirect to login
+ * - []
+ *
+ */
 const authCAS = require(__dirname + "/../lib/authUserCAS.js");
 const authLocal = require(__dirname + "/../lib/authUserLocal.js");
 const authOkta = require(__dirname + "/../lib/authUserOkta.js");
@@ -27,52 +32,6 @@ const passport = require("passport");
 
 const Cache = require("../lib/cacheManager");
 
-// B. Initializing during Sails.js bootstrap
-// (Global `sails` object is not yet defined)
-// @see api/hooks/initPassport.js
-let passportInitialize, passportSession;
-
-global.AB_AUTHUSER_INIT = (sails) => {
-   /*
-    * this is a common req.ab instance for performing user lookups:
-    */
-   const reqApi = AB.reqApi({}, {});
-   reqApi.jobID = "authUser";
-
-   /*
-    * Passport Initialization:
-    */
-   passport.serializeUser(function (user, done) {
-      console.log("serializeUser", user);
-      done(null, user);
-   });
-
-   passport.deserializeUser(function (user, done) {
-      console.log("deserializeUser", user);
-      done(null, user);
-   });
-
-   // Add our strategies
-   // CAS auth
-   if (typeof sails.config.cas == "object" && sails.config.cas?.enabled) {
-      authCAS.init(reqApi);
-   }
-   // Okta auth
-   if (typeof sails.config.okta == "object" && sails.config.okta?.enabled) {
-      authOkta.init(reqApi);
-   }
-   // Local auth (default)
-   authLocal.init(reqApi);
-   authToken.init(reqApi);
-
-   passportInitialize = passport.initialize();
-   passportSession = passport.session();
-
-   // Clean up to reduce global namespace pollution
-   delete global.AB_AUTHUSER_INIT;
-};
-
-// C. Responding to requests at runtime
 var commonRequest = {};
 // {lookupHash} /* user.uuid : Promise.resolves(User) */
 // A shared lookup hash to reuse the same user lookup when multiple attempts
@@ -87,7 +46,7 @@ const tenantOptionsCache = {
    default: { authType: "login" },
 };
 
-const isUserKnown = (req, res, next) => {
+const isUserKnown = async (req, res, next) => {
    // Question: why don't we check req.session.passport.user?
    // Or use req.isAuthenticated()?
 
@@ -102,6 +61,7 @@ const isUserKnown = (req, res, next) => {
       key = `${req.ab.tenantID}-${userID}`;
    }
 
+   // TODO extract to a passort style auth
    // - Relay Header: authorization: 'relay@@@[accessToken]@@@[SiteUser.uuid]'
    if (req.headers && req.headers["authorization"]) {
       req.ab.log("authUser -> Relay Auth");
@@ -131,47 +91,19 @@ const isUserKnown = (req, res, next) => {
 
    // User is already authenticated
    if (key) {
-      let cachedUser = Cache.AuthUser(req.ab.tenantID, userID);
-      if (cachedUser) {
-         req.ab.user = cachedUser;
-         req.ab.log(`authUser -> cached user.`);
-         next(null, cachedUser);
+      try {
+         const user = await sails.helpers.user.findWithCache(
+            req,
+            req.ab.tenant,
+            userID
+         );
+         req.ab.user = user;
+         next(null, user);
          return true;
+      } catch (err) {
+         next(err);
+         return false;
       }
-
-      // make sure we have a Promise that will resolve to
-      // the user created for this userID
-      if (!commonRequest[key]) {
-         commonRequest[key] = req.ab.serviceRequest("user_manager.user-find", {
-            uuid: userID,
-         });
-
-         commonRequest[key].__count = 0;
-      }
-
-      // now use this Promise and retrieve the user
-      commonRequest[key].__count++;
-      commonRequest[key]
-         .then((user) => {
-            req.ab.user = user;
-            Cache.AuthUser(req.ab.tenantID, userID, user);
-
-            if (commonRequest[key]) {
-               req.ab.log(
-                  `authUser -> lookup shared among ${commonRequest[key].__count} requests.`
-               );
-               // we can remove the Promise now
-               delete commonRequest[key];
-            }
-
-            next(null, user);
-         })
-         .catch((err) => {
-            delete commonRequest[key];
-            next(err);
-         });
-
-      return true;
    }
 
    // User is not authenticated
@@ -179,18 +111,30 @@ const isUserKnown = (req, res, next) => {
 };
 
 module.exports = async (req, res, next) => {
-   await waitCallback(passportInitialize, req, res);
-   await waitCallback(passportSession, req, res);
+   // TODO: Some calls in parallel?
+   // If this req is from a signed-in user (via local, okta, or cas)
+   // they will be authenticated by session
+   await waitCallback(passport.initialize(), req, res);
+   await waitCallback(passport.session(), req, res);
    console.log("|--> req.isAuthenticated", req.isAuthenticated);
    console.log("|--> req.isAuthenticated.()", req.isAuthenticated?.());
    console.log("|--> req.user", req.user);
    console.log("|--> req.session.user", req.session?.user);
    console.log("|--> req.session", req.session);
+   if (req.session?.user) {
+      req.ab.user = req.session.user;
+   }
    const userKnown = isUserKnown(req, res, next);
+
+   // Alternatively this req could be autenticated by token or relay header
    if (userKnown) return; // User is known, so next() was already called
 
    const validToken = await authToken.middleware(req, res, next);
    if (validToken) return; // Token was valid, so next() was already called
+
+   // return here the use is either logged in or not at this point
+   // responsibility elsewhere to handle login
+   return;
 
    // User needs to Authenticate, check tenant settings for authType to use
    const tenantID = req.ab.tenantID;
