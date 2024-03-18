@@ -14,10 +14,12 @@ const authToken = require(__dirname + "/../lib/authUserToken.js");
 const AB = require("@digiserve/ab-utils");
 
 const authLogger = require("../lib/authLogger.js");
+const authUserRelay = require("../lib/authUserRelay.js");
 
 module.exports = function (sails) {
    return {
       initialize: async function () {
+         console.log("pasport initialize");
          /** @TODO: do I need this? */
          const reqApi = AB.reqApi({}, {});
          /* this is a common req.ab instance for performing user lookups */
@@ -26,6 +28,7 @@ module.exports = function (sails) {
          passport.serializeUser((user, done) => done(null, user.uuid));
          // TODO; test we actually get request (appears in passport source code)
          passport.deserializeUser((user, req, done) => {
+            console.log("deserializeUser", user);
             sails.helpers.user
                .findWithCache(req, req.ab.tenantID, user)
                .then((user) => done(user));
@@ -33,7 +36,8 @@ module.exports = function (sails) {
 
          // Passport Strategies:
          authLocal.init(reqApi);
-         authToken.init(reqApi);
+         authToken.init();
+         authUserRelay.init();
          if (sails.config.cas?.enabled) {
             authCAS.init(reqApi);
          }

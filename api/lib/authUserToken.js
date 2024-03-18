@@ -12,20 +12,25 @@ const { UniqueTokenStrategy } = require("passport-unique-token");
 const authLogger = require("./authLogger.js");
 
 module.exports = {
-   init: (reqApi) => {
+   init: () => {
       passport.use(
          "token",
          new UniqueTokenStrategy(
             { passReqToCallback: true, tokenHeader: "user-token" },
             (req, token, done) => {
+                        // __AUTO_GENERATED_PRINTF_START__
+                        console.log("authToken")// __AUTO_GENERATED_PRINTF_END__
                //console.log("Verify token", token);
                if (!token) return done();
-               reqApi.tenantID = req.ab.tenantID;
-               reqApi.serviceRequest(
+               req.tenantID = req.ab.tenantID;
+               req.serviceRequest(
                   "user_manager.user-for-token",
                   { token },
                   (err, user) => {
                      if (err) {
+                        // __AUTO_GENERATED_PRINTF_START__
+                        console.log("authToken CB")// __AUTO_GENERATED_PRINTF_END__
+
                         done(err);
                         return;
                      }

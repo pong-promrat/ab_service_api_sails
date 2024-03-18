@@ -17,10 +17,14 @@
  */
 /**
  * TODO
- * - [ ] refactor policy to only check login
- * - [ ] redirect to login
- * - []
- *
+ * - redirect to login
+ * - check what should authlohher be doing
+ * - test all auth types:
+ *     - local
+ *     - cas
+ *     - okta
+ *     - token
+ *     - relay
  */
 const authCAS = require(__dirname + "/../lib/authUserCAS.js");
 const authLocal = require(__dirname + "/../lib/authUserLocal.js");
@@ -46,88 +50,38 @@ const tenantOptionsCache = {
    default: { authType: "login" },
 };
 
-const isUserKnown = async (req, res, next) => {
-   // Question: why don't we check req.session.passport.user?
-   // Or use req.isAuthenticated()?
-
-   // there are several ways a User can be specified:
-   let key = null;
-   let userID = null;
-
-   // - session: user_id: {SiteUser.uuid}
-   if (req.session && req.session.user_id) {
-      req.ab.log("authUser -> session");
-      userID = req.session.user_id;
-      key = `${req.ab.tenantID}-${userID}`;
-   }
-
-   // TODO extract to a passort style auth
-   // - Relay Header: authorization: 'relay@@@[accessToken]@@@[SiteUser.uuid]'
-   if (req.headers && req.headers["authorization"]) {
-      req.ab.log("authUser -> Relay Auth");
-      let parts = req.headers["authorization"].split("@@@");
-      if (
-         parts[0] == "relay" &&
-         sails.config.relay?.mcc?.enabled &&
-         parts[1] == sails.config.relay.mcc.accessToken
-      ) {
-         userID = parts[2];
-         key = `${req.ab.tenantID}-${userID}`;
-         authLogger(req, "Relay auth successful");
-      } else {
-         // invalid authorization data:
-         let message =
-            "api_sails:authUser:Relay Header: Invalid authorization data";
-         let err = new Error(message);
-         req.ab.notify.developer(err, {
-            context: message,
-            authorization: req.headers["authorization"],
-         });
-         authLogger(req, "Relay auth FAILED");
-         // redirect to a Forbidden
-         return res.forbidden();
-      }
-   }
-
-   // User is already authenticated
-   if (key) {
-      try {
-         const user = await sails.helpers.user.findWithCache(
-            req,
-            req.ab.tenant,
-            userID
-         );
-         req.ab.user = user;
-         next(null, user);
-         return true;
-      } catch (err) {
-         next(err);
-         return false;
-      }
-   }
-
-   // User is not authenticated
-   return false;
-};
-
 module.exports = async (req, res, next) => {
    // TODO: Some calls in parallel?
    // If this req is from a signed-in user (via local, okta, or cas)
    // they will be authenticated by session
-   await waitCallback(passport.initialize(), req, res);
-   await waitCallback(passport.session(), req, res);
-   console.log("|--> req.isAuthenticated", req.isAuthenticated);
-   console.log("|--> req.isAuthenticated.()", req.isAuthenticated?.());
-   console.log("|--> req.user", req.user);
-   console.log("|--> req.session.user", req.session?.user);
-   console.log("|--> req.session", req.session);
-   if (req.session?.user) {
-      req.ab.user = req.session.user;
-   }
-   const userKnown = isUserKnown(req, res, next);
+   passport.session()(req, res, () => {
+      console.log("|--> req.isAuthenticated", req.isAuthenticated);
+      console.log("|--> req.isAuthenticated.()", req.isAuthenticated?.());
+      console.log("|--> req.user", req.user);
+      console.log("|--> req.session.user", req.session?.user);
+      console.log("|--> req.session", req.session);
 
-   // Alternatively this req could be autenticated by token or relay header
-   if (userKnown) return; // User is known, so next() was already called
+      if (req.user) {
+         req.ab.user = req.session.user;
+         next(null, req.user);
+      } else {
+            // __AUTO_GENERATED_PRINTF_START__
+            console.log("pasport.authenticate"); // __AUTO_GENERATED_PRINTF_END__
+         // Check for Relay Header or Auth Token
+         passport.authenticate(["relay", "token"], (err, user) => {
+            // __AUTO_GENERATED_PRINTF_START__
+            console.log("pasport.authenticate cb"); // __AUTO_GENERATED_PRINTF_END__
+
+            if (user) {
+               req.ab.user = user;
+               next(null, user);
+            } else {
+               // The user is not logged in, but that's not a problem here
+               next()
+            }
+         })(req, res, next);
+      }
+   });
 
    const validToken = await authToken.middleware(req, res, next);
    if (validToken) return; // Token was valid, so next() was already called
