@@ -30,7 +30,7 @@ const passport = require("passport");
 const OktaStrategy = require("passport-openidconnect").Strategy;
 
 module.exports = {
-   init: (reqApi) => {
+   init: () => {
       passport.use(
          "oidc",
          new OktaStrategy(
@@ -53,13 +53,12 @@ module.exports = {
                let username = profile.displayName || email;
                // Result is the final user object that Passport will use
                let result = null;
-               reqApi.tenantID = req.ab.tenantID;
 
                async.series(
                   [
                      // Find user account
                      (ok) => {
-                        reqApi.serviceRequest(
+                        req.serviceRequest(
                            "user_manager.user-find",
                            { email },
                            (err, user) => {
@@ -102,7 +101,7 @@ module.exports = {
                            },
                            // do
                            (d_cb) => {
-                              reqApi.serviceRequest(
+                              req.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
                                  {

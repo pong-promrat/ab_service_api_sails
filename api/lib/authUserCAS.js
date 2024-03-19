@@ -31,7 +31,7 @@ const CasStrategy = require("passport-cas2").Strategy;
 const authLogger = require("./authLogger.js");
 
 module.exports = {
-   init: (reqApi) => {
+   init: () => {
       passport.use(
          new CasStrategy(
             {
@@ -51,13 +51,12 @@ module.exports = {
 
                // Result is the final user object that Passport will use
                let result = null;
-               reqApi.tenantID = req.ab.tenantID;
 
                async.series(
                   [
                      // Find user account
                      (ok) => {
-                        reqApi.serviceRequest(
+                        req.serviceRequest(
                            "user_manager.user-find",
                            { authname: authName },
                            (err, user) => {
@@ -85,8 +84,8 @@ module.exports = {
                         let email =
                            profile.defaultmail ||
                            profile.email ||
-                           profile.emails ||
-                           uuid;
+                           profile.emails; //||
+                        // uuid;
                         if (Array.isArray(email)) {
                            email = email[0];
                         }
@@ -116,7 +115,7 @@ module.exports = {
                            },
                            // do
                            (d_cb) => {
-                              reqApi.serviceRequest(
+                              req.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
                                  {

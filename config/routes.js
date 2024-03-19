@@ -55,6 +55,10 @@ module.exports.routes = {
    "delete /auth/switcheroo": "auth/switcheroo-clear",
    // removes a swticheroo assignment.
 
+   // Okta Auth routes
+   "get /okta-error": "auth/okta-error",
+   "get /authorization-code/callback": "auth/okta-callback",
+
    // Plugin Loading
    "get /plugin/:tenant/:key": {
       controller: "SiteController",
