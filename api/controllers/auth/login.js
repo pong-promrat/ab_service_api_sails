@@ -25,13 +25,13 @@ const passport = require("passport");
 module.exports = function (req, res) {
    req.ab.log("auth/login():");
 
-   passport.authenticate("local")(req, res, (err, user) => {
+   passport.authenticate("local", (err, user) => {
       if (err) {
          res.ab.error(err);
       } else {
          res.ab.success({ user });
       }
-   });
+   })(req, res);
    // // verify your inputs are correct:
    // // false : prevents an auto error response if detected. (default: true)
    // if (!req.ab.validateParameters(inputParams /*, true, validateThis */)) {

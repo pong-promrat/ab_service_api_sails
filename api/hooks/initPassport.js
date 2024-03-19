@@ -24,18 +24,16 @@ module.exports = function (sails) {
          const reqApi = AB.reqApi({}, {});
          /* this is a common req.ab instance for performing user lookups */
 
-         // store the full user in session
          passport.serializeUser((user, done) => done(null, user.uuid));
-         // TODO; test we actually get request (appears in passport source code)
-         passport.deserializeUser((user, req, done) => {
+         passport.deserializeUser((req, user, done) => {
             console.log("deserializeUser", user);
             sails.helpers.user
                .findWithCache(req, req.ab.tenantID, user)
-               .then((user) => done(user));
+               .then((user) => done(null, user));
          });
 
          // Passport Strategies:
-         authLocal.init(reqApi);
+         authLocal.init();
          authToken.init();
          authUserRelay.init();
          if (sails.config.cas?.enabled) {

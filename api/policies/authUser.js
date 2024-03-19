@@ -1,19 +1,20 @@
 /**
  * authUser
  * attempt to resolve which user this route is trying to work with.
- * When this step is completed, there should be 1 of 3 conditions:
- *    1) A User has not been resolved:
- *       req.ab.passport : {Passport}
- *       req.session.user_id : {null or undefined}
- *       req.ab.user : {null or undefined}
+ * this will either be from:
+ * 1) Session
+ *    - User prevously authenticated with local auth, okta, or CAS
+ * 2) Relay Header
+ *    - A valid relay header
+ * 3) Auth Token
+ *    - A valud user auth token
  *
- *    2) A User is defined in the session info:
- *       This means the User has been looked up via the session info
- *       req.session.user_id : {SiteUser.uuid}
- *       req.ab.user : {json of SiteUser entry}
+ * If a user is found it will be set in req.ab.user. This is used elsewhere
+ * to ensure the user is logged in and valid.
+ *    req.ab.user : {ABSiteUser}
  *
- * The only time the session info is set is during the auth/login.js
- * routine.  After a successful login, the session.user_id is set.
+ * This policy does not enforce log in. So the req will continue regardless
+ * of outcome
  */
 /**
  * TODO
@@ -26,20 +27,8 @@
  *     - token
  *     - relay
  */
-const authCAS = require(__dirname + "/../lib/authUserCAS.js");
-const authLocal = require(__dirname + "/../lib/authUserLocal.js");
-const authOkta = require(__dirname + "/../lib/authUserOkta.js");
-const authToken = require(__dirname + "/../lib/authUserToken.js");
-const authLogger = require(__dirname + "/../lib/authLogger.js");
 const AB = require("@digiserve/ab-utils");
 const passport = require("passport");
-
-const Cache = require("../lib/cacheManager");
-
-var commonRequest = {};
-// {lookupHash} /* user.uuid : Promise.resolves(User) */
-// A shared lookup hash to reuse the same user lookup when multiple attempts
-// are being attempted in parallel.
 
 const tenantOptionsCache = {
    // {lookupHash} tenantID : options object
@@ -61,28 +50,28 @@ module.exports = async (req, res, next) => {
       console.log("|--> req.session.user", req.session?.user);
       console.log("|--> req.session", req.session);
 
-      if (req.user) {
-         req.ab.user = req.session.user;
+      if (req.isAuthenticated()) {
+         req.ab.user = req.user;
          next(null, req.user);
       } else {
-            // __AUTO_GENERATED_PRINTF_START__
-            console.log("pasport.authenticate"); // __AUTO_GENERATED_PRINTF_END__
-         // Check for Relay Header or Auth Token
-         passport.authenticate(["relay", "token"], (err, user) => {
-            // __AUTO_GENERATED_PRINTF_START__
-            console.log("pasport.authenticate cb"); // __AUTO_GENERATED_PRINTF_END__
-
-            if (user) {
-               req.ab.user = user;
-               next(null, user);
-            } else {
-               // The user is not logged in, but that's not a problem here
-               next()
+         // Check for Relay Header or Auth Token (these don't save to session)
+         passport.authenticate(
+            ["relay", "token"],
+            { session: false },
+            (err, user) => {
+               if (user) {
+                  req.ab.user = user;
+                  next(null, user);
+               } else {
+                  // The user is not logged in, but that's not a problem here
+                  next();
+               }
             }
-         })(req, res, next);
+         )(req, res);
       }
    });
-
+};
+/**
    const validToken = await authToken.middleware(req, res, next);
    if (validToken) return; // Token was valid, so next() was already called
 
