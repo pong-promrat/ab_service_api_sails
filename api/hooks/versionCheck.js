@@ -60,7 +60,6 @@ const versioncheck = function (req, res) {
       <service> : "<version>"
       */
    };
-   let statusCode = 200;
    if (req.ab.tenantID == "??") {
       req.ab.tenantID = "admin";
    }
