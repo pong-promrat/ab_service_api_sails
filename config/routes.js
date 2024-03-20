@@ -42,7 +42,7 @@ module.exports.routes = {
    "post /auth/password/reset": "auth/reset-password-update",
    "post /auth/login/reset": "auth/reset-password-request",
    // password reset request
-
+   "get /auth/login": "auth/login-start",
    "post /auth/login": "auth/login",
    // process the password login
 

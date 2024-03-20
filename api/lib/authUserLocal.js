@@ -14,7 +14,6 @@ module.exports = {
                "user_manager.user-find-password",
                { email, password },
                (err, user) => {
-                  console.log("resp", { err, user });
                   if (err) {
                      done(err);
                      return;
@@ -25,5 +24,10 @@ module.exports = {
          }
       );
       passport.use(strategy);
+   },
+   // Shouldn't happen, but if we recieve GET /auth/login with
+   // local auth just redirect back home
+   login: (req, res) => {
+      res.redirect("/");
    },
 };

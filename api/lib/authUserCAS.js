@@ -173,7 +173,7 @@ module.exports = {
       );
    },
 
-   middleware: (req, res, next, tenantUrl) => {
+   login: (req, res, tenantUrl) => {
       // Authenticate the unknown user now
 
       // Inject the AppBuilder site URL from the config into
@@ -237,9 +237,8 @@ module.exports = {
             req.ab.user = user;
          });
 
-         next();
          authLogger(req, "CAS auth successful");
       });
-      auth(req, res, next);
+      auth(req, res);
    },
 };

@@ -8,7 +8,7 @@
  * @apiSuccess (302) redirect to /
  */
 const passport = require("passport");
-const authLogger = require("../lib/authLogger.js");
+const authLogger = require("../../lib/authLogger.js");
 
 module.exports = function (req, res) {
    req.ab.log("/authorization-code/callback");
