@@ -37,5 +37,5 @@ module.exports = async function (req, res) {
    const { authType, url } = tenantOptionsCache[tenantID];
    // Send the request to authenticatate using the tenant's setting
    const loginFn = loginFunctions[authType] ?? loginFunctions.login;
-   loginFn(req, res, null, url);
+   loginFn(req, res, url);
 };

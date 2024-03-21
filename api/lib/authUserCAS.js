@@ -1,19 +1,5 @@
 /**
  * authUser (CAS)
- * attempt to resolve which user this route is trying to work with.
- * When this step is completed, there should be 1 of 3 conditions:
- *    1) A User has not been resolved:
- *       req.ab.passport : {Passport}
- *       req.session.user_id : {null or undefined}
- *       req.ab.user : {null or undefined}
- *
- *    2) A User is defined in the session info:
- *       This means the User has been looked up via the session info
- *       req.session.user_id : {SiteUser.uuid}
- *       req.ab.user : {json of SiteUser entry}
- *
- * The only time the session info is set is during the auth/login.js
- * routine.  After a successful login, the session.user_id is set.
  *
  * Add this to your config/local.js:
  * cas: {
@@ -56,7 +42,7 @@ module.exports = {
                   [
                      // Find user account
                      (ok) => {
-                        req.serviceRequest(
+                        req.ab.serviceRequest(
                            "user_manager.user-find",
                            { authname: authName },
                            (err, user) => {
@@ -115,7 +101,7 @@ module.exports = {
                            },
                            // do
                            (d_cb) => {
-                              req.serviceRequest(
+                              req.ab.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
                                  {
@@ -179,66 +165,40 @@ module.exports = {
       // Inject the AppBuilder site URL from the config into
       // the headers so that Passport CAS will know where to
       // redirect back to.
-      const siteURL = url.parse(tenantUrl);
+      const siteURL = new url.URL(tenantUrl);
       req.headers["x-forwarded-proto"] = siteURL.protocol;
       req.headers["x-forwarded-host"] = siteURL.host;
 
-      let auth = passport.authenticate("cas", (err, user, info) => {
+      const auth = passport.authenticate("cas");
+      const afterAuth = (err, ...params) => {
          // Server errors
          if (err) {
             res.serverError(err);
             authLogger(req, "CAS auth error");
             req.ab.notify.developer(err, {
                context: "CAS authentication (err)",
-               user,
-               info,
-            });
-            return;
-         }
-         if (info instanceof Error) {
-            res.serverError(info);
-            authLogger(req, "CAS auth error");
-            req.ab.notify.developer(info, {
-               context: "CAS authentication (info)",
-               user,
+               ...params,
             });
             return;
          }
          // Authentication failed
-         if (!user) {
+         if (!req.user) {
             let err = new Error("CAS Auth failed");
             res.serverError(err);
             authLogger(req, "CAS auth error");
             req.ab.notify.developer(err, {
                context: "CAS authentication failed",
-               user,
-               info,
+               ...params,
             });
             return;
          }
-
-         // CAS auth succeeded
-         req.logIn(user, (err) => {
-            // ... but the site did not?
-            if (err) {
-               res.serverError();
-               authLogger(req, "CAS auth error?");
-               req.ab.notify.developer(err, {
-                  context: "Error performing passport.logIn()",
-                  user,
-                  info,
-               });
-               return;
-            }
-
-            // Authenticated!
-            req.session.user_id = user.uuid;
-            req.session.tenant_id = req.ab.tenantID;
-            req.ab.user = user;
-         });
-
+         // Successful auth redirect to "/"
+         res.redirect("/");
          authLogger(req, "CAS auth successful");
-      });
-      auth(req, res);
+      };
+      // auth(req, res, callback);
+      // passport.initialize() As of v0.6.x, it is typically no longer
+      // necessary to use this middleware but passport-cas2 expects it
+      passport.initialize()(req, res, () => auth(req, res, afterAuth));
    },
 };

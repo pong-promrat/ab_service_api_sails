@@ -43,7 +43,7 @@ module.exports = {
                   [
                      // Find user account
                      (ok) => {
-                        req.serviceRequest(
+                        req.ab.serviceRequest(
                            "user_manager.user-find",
                            { email },
                            (err, user) => {
@@ -86,7 +86,7 @@ module.exports = {
                            },
                            // do
                            (d_cb) => {
-                              req.serviceRequest(
+                              req.ab.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
                                  {
