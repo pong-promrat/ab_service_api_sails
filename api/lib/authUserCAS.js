@@ -197,8 +197,8 @@ module.exports = {
          authLogger(req, "CAS auth successful");
       };
       // auth(req, res, callback);
-      // passport.initialize() As of v0.6.x, it is typically no longer
-      // necessary to use this middleware but passport-cas2 expects it
+      // passport.initialize() "As of v0.6.x, it is typically no longer
+      // necessary to use this middleware", but passport-cas2 expects it
       passport.initialize()(req, res, () => auth(req, res, afterAuth));
    },
 };

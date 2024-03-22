@@ -18,9 +18,9 @@ module.exports = {
          new UniqueTokenStrategy(
             { passReqToCallback: true, tokenHeader: "user-token" },
             (req, token, done) => {
-               if (!token) return done();
-               req.tenantID = req.ab.tenantID;
-               req.serviceRequest(
+               if (!token) return done(null, false);
+               req.ab.log("authUser -> Token Auth");
+               req.ab.serviceRequest(
                   "user_manager.user-for-token",
                   { token },
                   (err, user) => {

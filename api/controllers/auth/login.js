@@ -14,7 +14,6 @@
  * @apiSuccess (200) {object} data.user
  */
 const passport = require("passport");
-const authLogger = require("../../lib/authLogger.js");
 
 module.exports = function (req, res) {
    req.ab.log("auth/login():");
@@ -23,11 +22,9 @@ module.exports = function (req, res) {
       if (err) {
          res.ab.log("error logging in:", err);
          res.ab.error(err, 401);
-         authLogger(req, "Local auth FAILED");
       } else {
          req.ab.log("successful auth/login");
          res.ab.success({ user: req.user });
-         authLogger(req, "Local auth successful");
       }
    });
 };

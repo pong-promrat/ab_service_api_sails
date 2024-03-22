@@ -16,9 +16,8 @@ module.exports = {
          new Strategy(
             { passReqToCallback: true, headers: ["authorization"] },
             (req, { authorization }, done) => {
-               console.log("Auth Relay");
-               if (!authorization)
-                  return done(new Error("Missing `authorization` header"));
+               if (!authorization) return done();
+               req.ab.log("authUser -> Relay Auth");
                const [relay, token, user] = authorization.split("@@@");
                if (
                   relay === "relay" &&
@@ -28,18 +27,21 @@ module.exports = {
                   sails.helpers.user
                      .findWithCache(req, req.ab.tenantID, user)
                      .catch((err) => done(err))
-                     .then((user) => done(null, user));
+                     .then((user) => {
+                        done(null, user);
+                        authLogger(req, "Relay auth successful");
+                     });
                } else {
                   // invalid authorization data:
                   const message =
                      "api_sails:authUser:Relay Header: Invalid authorization data";
                   const err = new Error(message);
                   done(err);
-                  // req.ab.notify.developer(err, {
-                  // context: message,
-                  // authorization: req.headers["authorization"],
-                  // });
-                  // authLogger(req, "Relay auth FAILED");
+                  req.ab.notify.developer(err, {
+                     context: message,
+                     authorization,
+                  });
+                  authLogger(req, "Relay auth FAILED");
                }
             }
          )

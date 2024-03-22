@@ -27,30 +27,14 @@
  *     - token
  *     - relay
  */
-const AB = require("@digiserve/ab-utils");
 const passport = require("passport");
 
-const tenantOptionsCache = {
-   // {lookupHash} tenantID : options object
-   // Cache of a tenants options so we don't need to request from DB repeatedly
-   //   - If the request has '??' or 'default' tenantID it means the tenant is
-   //     not resolved yet. Use the local login auth with the tenant select.
-   "??": { authType: "login" },
-   default: { authType: "login" },
-};
-
 module.exports = async (req, res, next) => {
-   // TODO: Some calls in parallel?
    // If this req is from a signed-in user (via local, okta, or cas)
    // they will be authenticated by session
    passport.session()(req, res, () => {
-      console.log("|--> req.isAuthenticated", req.isAuthenticated);
-      console.log("|--> req.isAuthenticated.()", req.isAuthenticated?.());
-      console.log("|--> req.user", req.user);
-      console.log("|--> req.session.user", req.session?.user);
-      console.log("|--> req.session", req.session);
-
       if (req.isAuthenticated()) {
+         req.ab.log("authUser -> Session");
          req.ab.user = req.user;
          next(null, req.user);
       } else {
@@ -71,43 +55,3 @@ module.exports = async (req, res, next) => {
       }
    });
 };
-/**
-   const validToken = await authToken.middleware(req, res, next);
-   if (validToken) return; // Token was valid, so next() was already called
-
-   // return here the use is either logged in or not at this point
-   // responsibility elsewhere to handle login
-   return;
-
-   // User needs to Authenticate, check tenant settings for authType to use
-   const tenantID = req.ab.tenantID;
-   // If we don't have it cached, request from tenant manager
-   if (!tenantOptionsCache[tenantID]) {
-      const { options } = await req.ab.serviceRequest("tenant_manager.config", {
-         uuid: tenantID,
-      });
-
-      tenantOptionsCache[tenantID] =
-         typeof options === "object" ? options : JSON.parse(options);
-   }
-   const { authType, url } = tenantOptionsCache[tenantID];
-   // Send the request to authenticatate using the tenant's setting
-   const authMiddlewares = {
-      cas: authCAS.middleware,
-      okta: authOkta.middleware,
-      login: authLocal.middleware,
-   };
-   const authMiddleware = authMiddlewares[authType] ?? authMiddlewares.login;
-   authMiddleware(req, res, next, url);
-};
-
-/**
- * Utility - wrap a function with callback in a promise that passes resoves as
- * the callback
- * @function waitCallback
- * @param {function} fn to call with the last arg being a callback
- * @param {...*} params any param to pass to the fn before the callback
- */
-function waitCallback(fn, ...params) {
-   return new Promise((resolve) => fn(...params, resolve));
-}

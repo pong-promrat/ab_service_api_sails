@@ -21,13 +21,15 @@ module.exports = (req, res, next) => {
    // console.log("authTenant: headers:", req.headers);
    // console.log("authTenant: cookie:", req.cookie);
 
+   // Previously we supported setting the tenant from the login page
+   // since we no longer support it no need to check session
    // - session: tenant_id:'aedasl;dkfjasdlkfj'
-   if (req.session && req.session.tenant_id) {
-      req.ab.log("authTenant -> session");
-      req.ab.tenantID = req.session.tenant_id;
-      next();
-      return;
-   }
+   // if (req.session && req.session.tenant_id) {
+   // req.ab.log("authTenant -> session");
+   // req.ab.tenantID = req.session.tenant_id;
+   // next();
+   // return;
+   // }
 
    // - header: tenant-token: 'adslkfaldkfjaslk;jf'
    if (req.headers && req.headers["tenant-token"]) {

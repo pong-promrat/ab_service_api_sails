@@ -146,7 +146,5 @@ module.exports = {
       // Send the user to the Okta site to sign in.
       const auth = passport.authenticate("oidc", { callbackURL });
       auth(req, res);
-
-      // @see api/hooks/initPassport.js :: routes
    },
 };

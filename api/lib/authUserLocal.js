@@ -3,6 +3,7 @@
  * authenticate the user with an email and password
  */
 const passport = require("passport");
+const authLogger = require("./authLogger");
 const LocalStrategy = require("passport-local").Strategy;
 
 module.exports = {
@@ -16,9 +17,12 @@ module.exports = {
                (err, user) => {
                   if (err) {
                      done(err);
+                     authLogger(req, "Local auth FAILED");
                      return;
                   }
                   done(null, user);
+
+                  authLogger(req, "Local auth successful");
                }
             );
          }
