@@ -17,7 +17,7 @@ module.exports.routes = {
     * load the AppBuilder.                                                     *
     *                                                                          *
     ***************************************************************************/
-   "/": "SiteController.index",
+   // "/": "SiteController.index",
    // returns the default loader for the site.  It will determine the tenant
    // and user from the url & user sessions if already set
    // @return {HTML} for the framework to load.
