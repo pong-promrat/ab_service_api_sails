@@ -73,6 +73,7 @@ module.exports.routes = {
    "get /file/:ID": "file_processor/file-get",
    "get /file/:ID/base64": "file_processor/file-base64",
    "post /image/upload/:isWebix": "file_processor/image-upload",
+   "put /image/rotate/:ID": "file_processor/image-rotate",
 
    /***************************************************************************
     *                                                                          *
@@ -177,4 +178,9 @@ module.exports.routes = {
    "get /config/site": "SiteController.configSite",
    "get /config/user": "SiteController.configUser",
    "get /config/inbox": "SiteController.configInbox",
+
+   // System Information
+   "get /definition/info/object/:ID": "definition_manager/information-object",
+   "get /definition/info/object/:objID/field/:ID":
+      "definition_manager/information-field",
 };

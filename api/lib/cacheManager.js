@@ -12,7 +12,7 @@ ReqAB.serviceResponder("api_sails.site-cache-stale", (req, cb) => {
    //    scopes
    //    roles
 
-   let tenantID = req.tenantID;
+   let tenantID = req.param("tenantID") ?? req.tenantID;
 
    console.log(":::::");
    console.log(`::::: site.cache.stale received for tenant[${tenantID}]`);
@@ -32,16 +32,21 @@ ReqAB.serviceResponder("api_sails.user-cache-stale", (req, cb) => {
    // Respond to warnings that our cached site configuration information is
    // no longer valid.
 
-   let userUUID = req.param("userUUID");
+   /** @type {string} */
+   const userUUID = req.param("userUUID");
 
    console.log(":::::");
    console.log(
       `::::: user.cache.stale received for tenant[${req.tenantID}]->user[${userUUID}]`
    );
    console.log(":::::");
-
-   delete CacheAuthUser?.[req.tenantID]?.[userUUID];
-   delete CachePreloaderUserVersion?.[req.tenantID]?.[userUUID];
+   if (userUUID === "all") {
+      CacheAuthUser[req.tenantID] = {};
+      CachePreloaderUserVersion[req.tenantID] = {};
+   } else {
+      delete CacheAuthUser?.[req.tenantID]?.[userUUID];
+      delete CachePreloaderUserVersion?.[req.tenantID]?.[userUUID];
+   }
    cb(null);
 });
 
@@ -68,9 +73,9 @@ module.exports = {
       }
       CacheAuthUser[tenantID] = CacheAuthUser[tenantID] || {};
       if (typeof value === "undefined") {
-         return CacheAuthUser[tenantID][userID];
+         return structuredClone(CacheAuthUser[tenantID][userID]);
       }
-      CacheAuthUser[tenantID][userID] = value;
+      CacheAuthUser[tenantID][userID] = structuredClone(value);
    },
 
    PreloaderSite: function (tenantID, config) {
