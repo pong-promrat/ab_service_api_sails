@@ -21,7 +21,6 @@ module.exports = {
                      return;
                   }
                   done(null, user);
-
                   authLogger(req, "Local auth successful");
                }
             );

@@ -2,11 +2,10 @@
  * mobile/qr.js
  * @apiDescription Respond with the QR code image for a specified app
  *
- * @api {get} /mobile/qr/:ID
+ * @api {get} /mobile/qr/:ID QR
  * @apiGroup Mobile
  * @apiPermission None
- * @apiUse successRes
- * @apiSuccess (200) {html}
+ * @apiSuccess (200) {HTML} html
  */
 
 const URL = require("node:url");

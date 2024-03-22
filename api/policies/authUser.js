@@ -16,17 +16,6 @@
  * This policy does not enforce log in. So the req will continue regardless
  * of outcome
  */
-/**
- * TODO
- * - redirect to login
- * - check what should authlohher be doing
- * - test all auth types:
- *     - local
- *     - cas
- *     - okta
- *     - token
- *     - relay
- */
 const passport = require("passport");
 
 module.exports = async (req, res, next) => {

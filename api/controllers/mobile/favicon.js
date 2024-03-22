@@ -2,11 +2,10 @@
  * mobile/favicon.js
  * @apiDescription Respond with the favicon.png of the Mobile PWA
  *
- * @api {get} /mobile/app/:ID/favicon.png
+ * @api {get} /mobile/app/:ID/favicon.png Favicon
  * @apiGroup Mobile
  * @apiPermission None
- * @apiUse successRes
- * @apiSuccess (200) {png}
+ * @apiSuccess (301) {Redirect} redirects to the tenant favicon.ico
  */
 // const authLogger = require("../../lib/authLogger.js");
 

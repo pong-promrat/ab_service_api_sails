@@ -2,11 +2,11 @@
  * mobile/app.js
  * @apiDescription Respond with the index.html of the Mobile PWA
  *
- * @api {get} /mobile/app/:ID
+ * @api {get} /mobile/app/:appID App
+ * @apiParam {string} appID
  * @apiGroup Mobile
  * @apiPermission None
- * @apiUse successRes
- * @apiSuccess (200) {html}
+ * @apiSuccess (200) {HTML} html
  */
 const async = require("async");
 
