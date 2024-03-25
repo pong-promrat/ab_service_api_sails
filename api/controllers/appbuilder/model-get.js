@@ -52,6 +52,8 @@ var inputParams = {
    url: { optional: true },
 };
 
+const BroadcastManager = require("../../lib/broadcastManager");
+
 // make sure our BasePath is created:
 module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
@@ -108,18 +110,7 @@ module.exports = function (req, res) {
 
    // verify that the request is from a socket not a normal HTTP
    if (req.isSocket) {
-      // Subscribe socket to a room with the name of the object's ID
-      // Join room for each role so that user only recieves data for their scope.
-      const roles = req.ab.user.SITE_ROLE ?? [];
-      roles.forEach((role) => {
-         const roomKey = `${jobData.objectID}-${role.uuid}`;
-         sails.sockets.join(req, req.ab.socketKey(roomKey));
-      });
-      // Also join room for the current user
-      const userRoom = req.ab.socketKey(
-         `${jobData.objectID}-${req.ab.user.username}`
-      );
-      sails.sockets.join(req, userRoom);
+      BroadcastManager.register(req);
    }
 
    const options = {};
@@ -138,12 +129,12 @@ module.exports = function (req, res) {
       jobData,
       options,
       (err, results) => {
+         BroadcastManager.unregister(req);
          if (err) {
             req.ab.log("api_sails:model-get:error:", err);
             res.ab.error(err);
             return;
          }
-         // req.ab.log(JSON.stringify(results));
          res.ab.success(results);
       }
    );
