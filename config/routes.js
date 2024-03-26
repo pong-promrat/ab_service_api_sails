@@ -17,7 +17,7 @@ module.exports.routes = {
     * load the AppBuilder.                                                     *
     *                                                                          *
     ***************************************************************************/
-   "/": "SiteController.index",
+   // "/": "SiteController.index",
    // returns the default loader for the site.  It will determine the tenant
    // and user from the url & user sessions if already set
    // @return {HTML} for the framework to load.
@@ -42,7 +42,7 @@ module.exports.routes = {
    "post /auth/password/reset": "auth/reset-password-update",
    "post /auth/login/reset": "auth/reset-password-request",
    // password reset request
-
+   "get /auth/login": "auth/login-start",
    "post /auth/login": "auth/login",
    // process the password login
 
@@ -54,6 +54,10 @@ module.exports.routes = {
 
    "delete /auth/switcheroo": "auth/switcheroo-clear",
    // removes a swticheroo assignment.
+
+   // Okta Auth routes
+   "get /okta-error": "auth/okta-error",
+   "get /authorization-code/callback": "auth/okta-callback",
 
    // Plugin Loading
    "get /plugin/:tenant/:key": {

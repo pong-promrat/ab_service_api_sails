@@ -2,7 +2,7 @@
  * mobile/version.js
  * @apiDescription Respond with the current version # of the provided mobile app
  *
- * @api {get} /mobile/version/:ID
+ * @api {get} /mobile/version/:ID Version
  * @apiGroup Mobile
  * @apiPermission None
  * @apiUse successRes

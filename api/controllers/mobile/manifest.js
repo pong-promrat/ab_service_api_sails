@@ -2,11 +2,10 @@
  * mobile/manifest.js
  * @apiDescription Respond with the manifest.json of the Mobile PWA
  *
- * @api {get} /mobile/app/:tenantID/:ID/manifest.json
+ * @api {get} /mobile/app/:tenantID/:ID/manifest.json Manifest
  * @apiGroup Mobile
  * @apiPermission None
- * @apiUse successRes
- * @apiSuccess (200) {html}
+ * @apiSuccess (200) {HTML} html
  */
 // const authLogger = require("../../lib/authLogger.js");
 
