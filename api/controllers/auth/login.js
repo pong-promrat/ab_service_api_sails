@@ -20,7 +20,7 @@ module.exports = function (req, res) {
 
    passport.authenticate("local")(req, res, (err) => {
       if (err) {
-         res.ab.log("error logging in:", err);
+         req.ab.log("error logging in:", err);
          res.ab.error(err, 401);
       } else {
          req.ab.log("successful auth/login");
