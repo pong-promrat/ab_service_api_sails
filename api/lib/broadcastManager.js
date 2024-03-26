@@ -82,7 +82,7 @@ ReqAB.serviceResponder("api.broadcast", (req, cb) => {
  * to notify us of specific Data Entries (id) that a connected user
  * is interested in.
  */
-ReqAB.serviceResponder("api_sails.broadcast-register", (req, cb) => {
+ReqAB.serviceResponder("api.broadcast-register", (req, cb) => {
    let IDs = req.param("ID") || [];
 
    req.log(`::::: BroadcastManager received for IDs[${IDs.length}]`);
