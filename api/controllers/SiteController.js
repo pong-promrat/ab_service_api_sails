@@ -81,10 +81,14 @@ module.exports = {
    //    console.log("!!!! LabelMissing !!!!");
    //    res.ab.success({ done: true });
    // },
-   index: function (req, res) {
-      // NGinx well send index.html from /home, but we go through sails for Authentication
-      return res.redirect("/home");
-   },
+
+   /*
+    * `/` is now seved by NGINX
+    */
+   // index: function (req, res) {
+   //    // NGinx well send index.html from /home, but we go through sails for Authentication
+   //    return res.redirect("/home");
+   // },
 
    /*
     * get /favicon.ico

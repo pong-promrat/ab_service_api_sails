@@ -2,7 +2,7 @@
  * auth/whoami.js
  * @apiDescription Provide a simple { user:{username} } response if the user is logged in.
  *
- * @api {get} /auth/whoami
+ * @api {get} /auth/whoami Who Am I
  * @apiGroup Auth
  * @apiPermission None
  * @apiUse successRes

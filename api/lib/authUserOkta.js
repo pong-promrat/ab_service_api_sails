@@ -1,20 +1,5 @@
 /**
- * authUser (CAS)
- * attempt to resolve which user this route is trying to work with.
- * When this step is completed, there should be 1 of 3 conditions:
- *    1) A User has not been resolved:
- *       req.ab.passport : {Passport}
- *       req.session.user_id : {null or undefined}
- *       req.ab.user : {null or undefined}
- *
- *    2) A User is defined in the session info:
- *       This means the User has been looked up via the session info
- *       req.session.user_id : {SiteUser.uuid}
- *       req.ab.user : {json of SiteUser entry}
- *
- * The only time the session info is set is during the auth/login.js
- * routine.  After a successful login, the session.user_id is set.
- *
+ * authUserOkta
  * Add this to your config/local.js:
  * okta: {
  *    domain: "example.okta.com",  // Okta server domain name
@@ -30,7 +15,7 @@ const passport = require("passport");
 const OktaStrategy = require("passport-openidconnect").Strategy;
 
 module.exports = {
-   init: (reqApi) => {
+   init: () => {
       passport.use(
          "oidc",
          new OktaStrategy(
@@ -53,13 +38,12 @@ module.exports = {
                let username = profile.displayName || email;
                // Result is the final user object that Passport will use
                let result = null;
-               reqApi.tenantID = req.ab.tenantID;
 
                async.series(
                   [
                      // Find user account
                      (ok) => {
-                        reqApi.serviceRequest(
+                        req.ab.serviceRequest(
                            "user_manager.user-find",
                            { email },
                            (err, user) => {
@@ -102,7 +86,7 @@ module.exports = {
                            },
                            // do
                            (d_cb) => {
-                              reqApi.serviceRequest(
+                              req.ab.serviceRequest(
                                  //"user_manager.new-user????",
                                  "appbuilder.model-post",
                                  {
@@ -155,14 +139,12 @@ module.exports = {
       );
    },
    // Authenticate the unknown user now
-   middleware: (req, res, next, tenantUrl) => {
+   login: (req, res, tenantUrl) => {
       const callbackURL = `${tenantUrl}/authorization-code/callback`;
       // Save the original URL that the user was trying to reach.
       req.session.okta_original_url = req.url;
       // Send the user to the Okta site to sign in.
       const auth = passport.authenticate("oidc", { callbackURL });
-      auth(req, res, next);
-
-      // @see api/hooks/initPassport.js :: routes
+      auth(req, res);
    },
 };

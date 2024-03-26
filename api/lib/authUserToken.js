@@ -12,49 +12,31 @@ const { UniqueTokenStrategy } = require("passport-unique-token");
 const authLogger = require("./authLogger.js");
 
 module.exports = {
-   init: (reqApi) => {
+   init: () => {
       passport.use(
          "token",
          new UniqueTokenStrategy(
             { passReqToCallback: true, tokenHeader: "user-token" },
             (req, token, done) => {
-               //console.log("Verify token", token);
-               if (!token) return done();
-               reqApi.tenantID = req.ab.tenantID;
-               reqApi.serviceRequest(
+               if (!token) return done(null, false);
+               req.ab.log("authUser -> Token Auth");
+               req.ab.serviceRequest(
                   "user_manager.user-for-token",
                   { token },
                   (err, user) => {
                      if (err) {
+                        if (err?.code === "EUNKNOWNTOKEN") {
+                           authLogger(req, "Token auth FAILED");
+                        }
                         done(err);
                         return;
                      }
+                     authLogger(req, "Token auth successful");
                      done(null, user);
                   }
                );
             }
          )
       );
-   },
-
-   middleware: (req, res, next) => {
-      // the user is unknown at this point.
-      return new Promise((resolve) => {
-         const auth = passport.authenticate("token", (err, user) => {
-            if (user) {
-               // If the token yielded a valid user we can call next and allow the
-               // request. We don't save as user to session with Token Auth.
-               req.ab.user = user;
-               next();
-               authLogger(req, "Token auth successful");
-               return resolve(true);
-            }
-            if (err?.code === "EUNKNOWNTOKEN") {
-               authLogger(req, "Token auth FAILED");
-            }
-            return resolve(false);
-         });
-         auth(req, res, next);
-      });
    },
 };

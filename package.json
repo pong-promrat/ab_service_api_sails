@@ -1,7 +1,7 @@
 {
   "name": "app",
   "private": true,
-  "version": "1.3.0",
+  "version": "2.0.1",
   "description": "a Sails application",
   "keywords": [],
   "dependencies": {
@@ -19,6 +19,7 @@
     "passport-cas2": "0.0.12",
     "passport-local": "^1.0.0",
     "passport-openidconnect": "^0.1.1",
+    "passport-trusted-header": "^1.1.0",
     "passport-unique-token": "^3.0.0",
     "sails": "^1.5.0",
     "sails-hook-grunt": "^5.0.0",

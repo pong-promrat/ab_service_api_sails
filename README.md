@@ -50,12 +50,16 @@ ___
   - [Model Update Batch](#Model-Update-Batch)
 - [Auth](#Auth)
   - [Login](#Login)
+  - [Login Start](#Login-Start)
   - [Logout](#Logout)
+  - [Okta Callback](#Okta-Callback)
+  - [Okta Error](#Okta-Error)
   - [Reset Password](#Reset-Password)
   - [Reset Verification](#Reset-Verification)
   - [Set Password](#Set-Password)
   - [Switcheroo](#Switcheroo)
   - [Switcheroo Clear](#Switcheroo-Clear)
+  - [Who Am I](#Who-Am-I)
 - [Definition](#Definition)
   - [All Applications](#All-Applications)
   - [Check](#Check)
@@ -75,6 +79,12 @@ ___
   - [Upload a Base64 Encoded File](#Upload-a-Base64-Encoded-File)
 - [Log](#Log)
   - [Find](#Find)
+- [Mobile](#Mobile)
+  - [App](#App)
+  - [Favicon](#Favicon)
+  - [Manifest](#Manifest)
+  - [QR](#QR)
+  - [Version](#Version)
 - [Multilingual](#Multilingual)
   - [Missing Label](#Missing-Label)
 - [Process](#Process)
@@ -323,6 +333,16 @@ ___
 | data.user | `object` |  |
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
   
+<a name='Login-Start'></a>
+### Login Start - `GET` /auth/login
+[Back to top](#top)
+
+
+<p>Start the login workflow based on the tenant's stategy</p>
+
+**Permission:** `None`
+
+  
 <a name='Logout'></a>
 ### Logout - `POST` /auth/logout
 [Back to top](#top)
@@ -347,6 +367,41 @@ ___
 | data | `object` |  |
 | data.redirect | `string` | <p>if using CAS Authentication we send the redirect url for logout</p> |
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
+  
+<a name='Okta-Callback'></a>
+### Okta Callback - `GET` /authorization-code/callback
+[Back to top](#top)
+
+
+<p>This is an Okta callback route to finalize sign on</p>
+
+**Permission:** `None`
+
+#### Responses
+
+##### Success response - `302`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| redirect |  | <p>to /</p> |
+  
+<a name='Okta-Error'></a>
+### Okta Error - `GET` /okta-error
+[Back to top](#top)
+
+
+<p>Handle an error response from Okta auth</p>
+
+**Permission:** `None`
+
+
+### Error response
+
+##### Error response - `403`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| Forbidden |  |  |
   
 <a name='Reset-Password'></a>
 ### Reset Password - `POST` /auth/login/reset
@@ -452,6 +507,25 @@ ___
 |----------|------------|---------------------------------------|
 | data | `object` |  |
 | data.success | `boolean` | <p><code>true</code></p> |
+| status | `string` | <p><code>&quot;success&quot;</code></p> |
+  
+<a name='Who-Am-I'></a>
+### Who Am I - `GET` /auth/whoami
+[Back to top](#top)
+
+
+<p>Provide a simple { user:{username} } response if the user is logged in.</p>
+
+**Permission:** `None`
+
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| data | `object` |  |
+| data.user | `object` |  |
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
 
 <a name='Definition'></a> 
@@ -796,6 +870,102 @@ ___
 | Name     | Type       | Description                           |
 |----------|------------|---------------------------------------|
 | data | `object[]` | <p>log enteries</p> |
+| status | `string` | <p><code>&quot;success&quot;</code></p> |
+
+<a name='Mobile'></a> 
+## Mobile
+
+
+  
+<a name='App'></a>
+### App - `GET` /mobile/app/:appID
+[Back to top](#top)
+
+
+<p>Respond with the index.html of the Mobile PWA</p>
+
+**Permission:** `None`
+
+#### Parameters
+| Name     | Type       | Location    |  Description            |
+|----------|------------|-------------|-------------------------|
+| appID | `string` | route |  |
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| html | `HTML` |  |
+  
+<a name='Favicon'></a>
+### Favicon - `GET` /mobile/app/:ID/favicon.png
+[Back to top](#top)
+
+
+<p>Respond with the favicon.png of the Mobile PWA</p>
+
+**Permission:** `None`
+
+#### Responses
+
+##### Success response - `301`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| redirects | `Redirect` | <p>to the tenant favicon.ico</p> |
+  
+<a name='Manifest'></a>
+### Manifest - `GET` /mobile/app/:tenantID/:ID/manifest.json
+[Back to top](#top)
+
+
+<p>Respond with the manifest.json of the Mobile PWA</p>
+
+**Permission:** `None`
+
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| html | `HTML` |  |
+  
+<a name='QR'></a>
+### QR - `GET` /mobile/qr/:ID
+[Back to top](#top)
+
+
+<p>Respond with the QR code image for a specified app</p>
+
+**Permission:** `None`
+
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| html | `HTML` |  |
+  
+<a name='Version'></a>
+### Version - `GET` /mobile/version/:ID
+[Back to top](#top)
+
+
+<p>Respond with the current version # of the provided mobile app</p>
+
+**Permission:** `None`
+
+#### Responses
+
+##### Success response - `200`
+
+| Name     | Type       | Description                           |
+|----------|------------|---------------------------------------|
+| data | `object` |  |
+| data.version | `object` |  |
 | status | `string` | <p><code>&quot;success&quot;</code></p> |
 
 <a name='Multilingual'></a> 
