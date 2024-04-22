@@ -67,6 +67,15 @@ ReqAB.serviceResponder("api.broadcast", (req, cb) => {
       }
       req.log(`::::: BroadcastManager:  broadcasting: ${d.room} ${d.event}`);
       sails.sockets.broadcast(d.room, d.event, d.data);
+
+      if (d.copyTo?.length > 0) {
+         d.copyTo.forEach((r) => {
+            req.log(
+               `::::: BroadcastManager:  broadcasting copyTo: ${r} ${d.event}`
+            );
+            sails.sockets.broadcast(r, d.event, d.data);
+         });
+      }
    });
    if (errors.length > 0) {
       console.log(JSON.stringify(errors, null, 4));
