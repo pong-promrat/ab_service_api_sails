@@ -66,16 +66,38 @@ ReqAB.serviceResponder("api.broadcast", (req, cb) => {
          return;
       }
       req.log(`::::: BroadcastManager:  broadcasting: ${d.room} ${d.event}`);
-      sails.sockets.broadcast(d.room, d.event, d.data);
 
+      // create a hash of the individual sockets we will collect from our rooms
+      let socketList = {
+         /* socket.id : {Socket} */
+      };
+
+      // pull the Sockets from the main d.room
+      let RoomSockets = sails.io.sockets.in(d.room);
+      console.log(RoomSockets);
+      Object.keys(RoomSockets.sockets).forEach((id) => {
+         socketList[id] = RoomSockets.sockets[id];
+      });
+
+      // now check the copyTo rooms and pull those sockets
       if (d.copyTo?.length > 0) {
          d.copyTo.forEach((r) => {
             req.log(
                `::::: BroadcastManager:  broadcasting copyTo: ${r} ${d.event}`
             );
-            sails.sockets.broadcast(r, d.event, d.data);
+            RoomSockets = sails.io.sockets.in(r);
+            console.log(RoomSockets);
+            Object.keys(RoomSockets.sockets).forEach((id) => {
+               socketList[id] = RoomSockets.sockets[id];
+            });
+            // sails.sockets.broadcast(r, d.event, d.data);
          });
       }
+
+      // now step through the socketList and send each of them a message:
+      Object.keys(socketList).forEach((id) => {
+         sails.sockets.broadcast(id, d.event, d.data);
+      });
    });
    if (errors.length > 0) {
       console.log(JSON.stringify(errors, null, 4));
