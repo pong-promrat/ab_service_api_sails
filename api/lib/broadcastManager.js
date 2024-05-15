@@ -74,7 +74,6 @@ ReqAB.serviceResponder("api.broadcast", (req, cb) => {
 
       // pull the Sockets from the main d.room
       let RoomSockets = sails.io.sockets.in(d.room);
-      console.log(RoomSockets);
       Object.keys(RoomSockets.sockets).forEach((id) => {
          socketList[id] = RoomSockets.sockets[id];
       });
@@ -86,7 +85,6 @@ ReqAB.serviceResponder("api.broadcast", (req, cb) => {
                `::::: BroadcastManager:  broadcasting copyTo: ${r} ${d.event}`
             );
             RoomSockets = sails.io.sockets.in(r);
-            console.log(RoomSockets);
             Object.keys(RoomSockets.sockets).forEach((id) => {
                socketList[id] = RoomSockets.sockets[id];
             });
