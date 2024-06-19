@@ -26,6 +26,8 @@ var inputParams = {
    /*    "param": { required: true } // NOTE: param Joi.any().required();      */
 };
 
+const BroadcastManager = require("../../lib/broadcastManager");
+
 // make sure our BasePath is created:
 module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
@@ -52,6 +54,11 @@ module.exports = function (req, res) {
       return;
    }
 
+   // verify that the request is from a socket not a normal HTTP
+   if (req.isSocket) {
+      BroadcastManager.register(req);
+   }
+
    var objectID = req.ab.param("objID");
    var batch = req.ab.param("batch");
 
@@ -76,6 +83,7 @@ module.exports = function (req, res) {
    });
 
    Promise.all(allCreates).then(() => {
+      BroadcastManager.unregister(req);
       res.ab.success({
          data: allResults,
          errors: allErrors,

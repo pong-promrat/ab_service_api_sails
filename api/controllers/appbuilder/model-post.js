@@ -14,6 +14,8 @@ var inputParams = {
    objID: { string: { uuid: true }, required: true },
 };
 
+const BroadcastManager = require("../../lib/broadcastManager");
+
 // make sure our BasePath is created:
 module.exports = function (req, res) {
    // Package the Find Request and pass it off to the service
@@ -40,6 +42,11 @@ module.exports = function (req, res) {
       return;
    }
 
+   // verify that the request is from a socket not a normal HTTP
+   if (req.isSocket) {
+      BroadcastManager.register(req);
+   }
+
    // create a new job for the service
    // start with our expected required inputs
    let jobData = {
@@ -57,6 +64,7 @@ module.exports = function (req, res) {
    });
 
    req.ab.serviceRequest("appbuilder.model-post", jobData, (err, newItem) => {
+      BroadcastManager.unregister(req);
       if (err) {
          req.ab.log("api_sails:model-post:error:", err);
          res.ab.error(err);
