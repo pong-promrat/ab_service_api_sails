@@ -119,43 +119,44 @@ module.exports = {
       // need to send this data along with the configuration data.
 
       let user = req.ab.user;
+      if (user) {
+         var jobData = {
+            users: [user.username],
+            roles: user.SITE_ROLE || [],
+         };
 
-      var jobData = {
-         users: [user.username],
-         roles: user.SITE_ROLE || [],
-      };
-
-      // pass the request off to the uService:
-      await new Promise((done, error) => {
-         req.ab.serviceRequest(
-            "process_manager.inbox.find",
-            jobData,
-            (err, results) => {
-               if (err) {
-                  req.ab.log("error inbox.find:", err);
-                  error(err);
-                  return;
-               }
-               configInbox = results;
-               // done();
-               // now ask for the inbox Meta data
-               var ids = results.map((r) => r.definition).filter((r) => r);
-               req.ab.serviceRequest(
-                  "process_manager.inbox.meta",
-                  { ids },
-                  (err, meta) => {
-                     if (err) {
-                        req.ab.log("error inbox.meta:", err);
-                        error(err);
-                        return;
-                     }
-                     configInboxMeta = meta;
-                     done();
+         // pass the request off to the uService:
+         await new Promise((done, error) => {
+            req.ab.serviceRequest(
+               "process_manager.inbox.find",
+               jobData,
+               (err, results) => {
+                  if (err) {
+                     req.ab.log("error inbox.find:", err);
+                     error(err);
+                     return;
                   }
-               );
-            }
-         );
-      });
+                  configInbox = results;
+                  // done();
+                  // now ask for the inbox Meta data
+                  var ids = results.map((r) => r.definition).filter((r) => r);
+                  req.ab.serviceRequest(
+                     "process_manager.inbox.meta",
+                     { ids },
+                     (err, meta) => {
+                        if (err) {
+                           req.ab.log("error inbox.meta:", err);
+                           error(err);
+                           return;
+                        }
+                        configInboxMeta = meta;
+                        done();
+                     }
+                  );
+               }
+            );
+         });
+      }
 
       res.ab.success({
          inbox: configInbox,
