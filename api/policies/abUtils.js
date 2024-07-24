@@ -6,6 +6,8 @@
 
 var AB = require("@digiserve/ab-utils");
 
+const MetricManager = require("../lib/metricManager");
+
 //
 // apiResponder
 // Our api_sails cote responder. This is where we setup any service handlers
@@ -62,6 +64,12 @@ module.exports = (req, res, next) => {
                errors.push({ message: errMsg, packet: data });
                return;
             }
+            // Log to Prometheus server
+            MetricManager.logSocketPayload({
+               event: d.event,
+               data: d.data,
+            });
+
             console.log(`broadcasting: ${d.room} ${d.event}`);
             sails.sockets.broadcast(d.room, d.event, d.data);
          });
