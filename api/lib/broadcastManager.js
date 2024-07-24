@@ -36,6 +36,7 @@ var broadcastRequiredFields = ["room", "event", "data"];
 // a list of required fields each of our broadcast packets need to have.
 
 const AB = require("@digiserve/ab-utils");
+const MetricManager = require("./metricManager");
 const ReqAB = AB.reqApi({}, {}, {});
 ReqAB.jobID = "api_broadcast_manager";
 
@@ -94,6 +95,12 @@ ReqAB.serviceResponder("api.broadcast", (req, cb) => {
 
       // now step through the socketList and send each of them a message:
       Object.keys(socketList).forEach((id) => {
+         // Log to Prometheus server
+         MetricManager.logSocketPayload({
+            event: d.event,
+            data: d.data,
+         });
+
          sails.sockets.broadcast(id, d.event, d.data);
       });
    });
