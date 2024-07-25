@@ -183,4 +183,7 @@ module.exports.routes = {
    "get /definition/info/object/:ID": "definition_manager/information-object",
    "get /definition/info/object/:objID/field/:ID":
       "definition_manager/information-field",
+
+   // Metrics
+   "get /metrics": "metric_manager/metrics-information",
 };
