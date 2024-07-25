@@ -35,7 +35,7 @@ module.exports = class MetricManager {
             labelNames: ["event"],
             // Create 20 buckets, starting on 400 and a width of 100
             // https://github.com/siimon/prom-client?tab=readme-ov-file#bucket-generators
-            buckets: prometheus_client.linearBuckets(400, 100, 20),
+            buckets: prometheus_client.linearBuckets(400, 200, 20),
          });
       }
 
