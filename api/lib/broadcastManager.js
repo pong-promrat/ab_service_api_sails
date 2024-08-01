@@ -36,9 +36,11 @@ var broadcastRequiredFields = ["room", "event", "data"];
 // a list of required fields each of our broadcast packets need to have.
 
 const AB = require("@digiserve/ab-utils");
-const MetricManager = require("./metricManager");
 const ReqAB = AB.reqApi({}, {}, {});
 ReqAB.jobID = "api_broadcast_manager";
+
+const MetricManager = require("./metricManager");
+MetricManager.setIntervalToReset(60);
 
 /**
  * @event api.broadcast

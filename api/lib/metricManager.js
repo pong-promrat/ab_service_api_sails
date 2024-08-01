@@ -19,6 +19,15 @@ module.exports = class MetricManager {
       return await prometheus_client.register.metrics();
    }
 
+   static setIntervalToReset(seconds = 30) {
+      if (this._resetInterval) clearInterval(this._resetInterval);
+
+      this._resetInterval = setInterval(() => {
+         const logger = this._SocketPayloadLogger;
+         logger.reset();
+      }, seconds * 1000);
+   }
+
    static _getSize(obj) {
       return Buffer.byteLength(JSON.stringify(obj ?? {}));
    }
@@ -35,7 +44,7 @@ module.exports = class MetricManager {
             labelNames: ["event"],
             // Create 20 buckets, starting on 400 and a width of 100
             // https://github.com/siimon/prom-client?tab=readme-ov-file#bucket-generators
-            buckets: prometheus_client.linearBuckets(400, 200, 20),
+            buckets: prometheus_client.linearBuckets(500, 500, 10),
          });
       }
 
