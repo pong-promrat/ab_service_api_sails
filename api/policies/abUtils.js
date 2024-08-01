@@ -7,6 +7,7 @@
 var AB = require("@digiserve/ab-utils");
 
 const MetricManager = require("../lib/metricManager");
+MetricManager.setIntervalToReset(30);
 
 //
 // apiResponder
