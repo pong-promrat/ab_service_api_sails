@@ -38,14 +38,19 @@ module.exports = class MetricManager {
 
    static get _SocketPayloadLogger() {
       if (this.__socketPayloadLogger == null) {
-         this.__socketPayloadLogger = new prometheus_client.Histogram({
+         this.__socketPayloadLogger = new prometheus_client.Summary({
             name: SOCKET_PAYLOAD_METRIC_NAME,
             help: "Socket response payload size",
             labelNames: ["event"],
-            // Create 20 buckets, starting on 400 and a width of 100
-            // https://github.com/siimon/prom-client?tab=readme-ov-file#bucket-generators
-            buckets: prometheus_client.linearBuckets(500, 500, 10),
          });
+         // this._socketPayloadLogger = new prometheus_client.Histogram({
+         //    name: SOCKET_PAYLOAD_METRIC_NAME,
+         //    help: "Socket response payload size",
+         //    labelNames: ["event"],
+         //    // Create 20 buckets, starting on 500 and a width of 500
+         //    // https://github.com/siimon/prom-client?tab=readme-ov-file#bucket-generators
+         //    buckets: prometheus_client.linearBuckets(500, 500, 10),
+         // });
       }
 
       return this.__socketPayloadLogger;
