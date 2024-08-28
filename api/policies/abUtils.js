@@ -70,7 +70,7 @@ module.exports = (req, res, next) => {
             // {array} of all the individual sockets in the room we are 
             // sending a message to.
 
-            (userSockets || []).forEach((s) => {
+            (Object.keys(userSockets.sockets) || []).forEach((s) => {
                // Log to Prometheus server for each user/socket
                MetricManager.logSocketPayload({
                   event: d.event,
