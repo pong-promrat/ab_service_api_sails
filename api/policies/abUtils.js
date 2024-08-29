@@ -65,10 +65,17 @@ module.exports = (req, res, next) => {
                errors.push({ message: errMsg, packet: data });
                return;
             }
-            // Log to Prometheus server
-            MetricManager.logSocketPayload({
-               event: d.event,
-               data: d.data,
+
+            let userSockets = sails.io.sockets.in(d.room);
+            // {array} of all the individual sockets in the room we are 
+            // sending a message to.
+
+            (Object.keys(userSockets.sockets) || []).forEach((s) => {
+               // Log to Prometheus server for each user/socket
+               MetricManager.logSocketPayload({
+                  event: d.event,
+                  data: d.data,
+               });
             });
 
             console.log(`broadcasting: ${d.room} ${d.event}`);
