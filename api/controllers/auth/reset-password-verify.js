@@ -10,10 +10,10 @@
  * @apiQuery {string} a auth token
  * @apiSuccess (302) redirect redirect to login page
  */
-const authLogger = require("../../lib/authLogger.js");
+const passport = require("passport");
 
 var inputParams = {
-   t: { string: true, required: true }, // tenant ID
+   t: { string: true, optional: true }, // tenant ID
    a: { string: true, required: true }, // auth token
 };
 
@@ -42,41 +42,20 @@ module.exports = async function (req, res) {
       }
    }
 
-   try {
-      var user = await userForAuthToken(req, req.ab.param("a"));
-
-      // authenticate user
-      req.session.tenant_id = req.ab.tenantID;
-      req.session.user_id = user.uuid;
-
-      let defaultView = `appbuilder-view="auth_login_resetPassword"`;
-      req.session.defaultView = defaultView;
-
-      // redirect to our base url
-      res.redirect("/");
-      authLogger(req, "Password reset token successful");
-   } catch (err) {
-      if (err.code == "EUNKNOWNTOKEN") {
-         authLogger(req, "Password reset token FAILED");
-         return res.notFound();
-      }
-      res.ab.error(err);
-      authLogger(req, "Password reset token error");
-   }
-};
-
-async function userForAuthToken(req, token) {
-   return new Promise((resolve, reject) => {
-      req.ab.serviceRequest(
-         "user_manager.user-for-token",
-         { token },
-         (err, results) => {
-            if (err) {
-               reject(err);
-               return;
-            }
-            resolve(results);
-         }
-      );
+   // token auth through passport
+   req.headers["user-token"] = req.ab.param("a");
+   const [err, user] = await new Promise((resolve) => {
+      passport.authenticate(["token"], (...args) => resolve(args))(req, res);
    });
-}
+   if (err) {
+      res.forbidden();
+   }
+
+   let defaultView = `appbuilder-view="auth_login_resetPassword"`;
+   req.session.defaultView = defaultView;
+   // save the user in session for passport (this keeps them logged in)
+   req.session.passport = { user: user.uuid };
+
+   // redirect to our base url
+   res.redirect("/");
+};

@@ -25,6 +25,7 @@ module.exports.policies = {
 
    "mobile/app": noAuth,
    "mobile/favicon": noAuth,
+   "auth/reset-password-verify": noAuth,
 
    /***************************************************************************
     *                                                                          *
