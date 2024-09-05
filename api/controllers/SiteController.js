@@ -6,63 +6,6 @@
  */
 const async = require("async");
 const Cache = require("../lib/cacheManager");
-// const AB = require("@digiserve/ab-utils");
-// const ReqAB = AB.reqApi({}, {}, {});
-// ReqAB.jobID = "api_cache_buster";
-// ReqAB.serviceResponder("api_sails.site-cache-stale", (req, cb) => {
-//    // Respond to warnings that our cached site configuration information is
-//    // no longer valid.
-
-//    // Things that breaks the cache:
-//    //    language
-//    //    tenants
-//    //    users
-//    //    scopes
-//    //    roles
-
-//    let tenantID = req.tenantID;
-
-//    console.log(":::::");
-//    console.log(`::::: site.cache.stale received for tenant[${tenantID}]`);
-//    console.log(":::::");
-
-//    if (tenantID == "all") {
-//       CachePreloaderSite = {};
-//       CachePreloaderSiteVersion = {};
-//    } else {
-//       delete CachePreloaderSite[tenantID];
-//       delete CachePreloaderSiteVersion[tenantID];
-//    }
-//    cb(null);
-// });
-
-// ReqAB.serviceResponder("api_sails.user-cache-stale", (req, cb) => {
-//    // Respond to warnings that our cached site configuration information is
-//    // no longer valid.
-
-//    let userUUID = req.param("userUUID");
-
-//    console.log(":::::");
-//    console.log(
-//       `::::: user.cache.stale received for tenant[${req.tenantID}]->user[${userUUID}]`
-//    );
-//    console.log(":::::");
-
-//    delete CachePreloaderUserVersion[req.tenantID][userUUID];
-//    cb(null);
-// });
-
-// var CachePreloaderSite = {
-//    /* tenantID: { ConfigSite }, */
-// };
-
-// var CachePreloaderSiteVersion = {
-//    /* tenantID : "CurrentSiteConfigHash" */
-// };
-
-// var CachePreloaderUserVersion = {
-//    /* tenantID : {  user.uuid : "CurrentUserConfigHash" } */
-// };
 
 function UserSimple(req) {
    let sUser = {};
@@ -642,6 +585,34 @@ module.exports = {
          configMyAppsVersion,
          pluginList,
       });
+   },
+
+   /**
+    * get /settings
+    * Need to send these settings outside of config because settings["appbuilder-view"]
+    * is used during reset password and therefore shouldn't be cached
+    */
+   settings: async function (req, res) {
+      const settings = {};
+      settings["appbuilder-tenant"] = req.options.useTenantID //tenantID was set due to our route: get /admin
+         ? sails.config.tenant_manager.siteTenantID
+         : req.ab.tenantSet() //Tenant set from policies
+         ? req.ab.tenantID
+         : "";
+      // defaultView specifies which portal_* view to default to.
+      // normally it should show up in the work view
+      settings["appbuilder-view"] = "work";
+      if (req.session?.defaultView) {
+         let sessionView = req.session.defaultView;
+         if (/appbuilder-view="(.+)"/.test(sessionView)) {
+            sessionView = sessionView.match(/appbuilder-view="(.+)"/)[1];
+         }
+         settings["appbuilder-view"] = sessionView;
+         req.ab.log(">>> PULLING Default View from Session", sessionView);
+      }
+      // Send as JS
+      res.set("Content-Type", "text/javascript");
+      res.send(`window.__AB_Settings=${JSON.stringify(settings)}`);
    },
 };
 
