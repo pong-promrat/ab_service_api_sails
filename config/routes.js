@@ -186,4 +186,8 @@ module.exports.routes = {
 
    // Metrics
    "get /metrics": "metric_manager/metrics-information",
+
+   // Netsuite related
+   "get /env/verify/:ID": "appbuilder/env-verify",
+   "get /netsuite/metadata": "appbuilder/netsuite-metadata-catalog",
 };
