@@ -60,7 +60,7 @@ module.exports = function (req, res) {
    var fields = ["where"];
    fields.forEach((f) => {
       var val = req.ab.param(f);
-      if (val) {
+      if (typeof val != "undefined") {
          try {
             jobData.cond[f] = JSON.parse(val);
          } catch (e) {

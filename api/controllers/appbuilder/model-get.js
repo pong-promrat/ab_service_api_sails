@@ -92,7 +92,7 @@ module.exports = function (req, res) {
    Object.keys(inputParams).forEach((f) => {
       if (f == "objID") return;
       var val = req.ab.param(f);
-      if (val) {
+      if (typeof val != "undefined") {
          try {
             jobData.cond[f] = JSON.parse(val);
          } catch (e) {
