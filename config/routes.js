@@ -191,4 +191,6 @@ module.exports.routes = {
    // Netsuite related
    "get /env/verify/:ID": "appbuilder/env-verify",
    "get /netsuite/metadata": "appbuilder/netsuite-metadata-catalog",
+   "get /netsuite/table/:ID": "appbuilder/netsuite-table-fields",
+   "get /netsuite/dataverify/:table": "appbuilder/netsuite-data-verify",
 };
