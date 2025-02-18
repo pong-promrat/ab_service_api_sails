@@ -85,5 +85,9 @@ module.exports.bootstrap = async function (done) {
    //    console.log("::::: uncaughtException :::::");
    //    console.log(reason);
    // });
-   NginxLogger.start();
+
+   // NOTE: Enable NGINX logging only on the production server.
+   if (process.env.ENABLE_NGINX_LOGGING) {
+      NginxLogger.start();
+   }
 };
