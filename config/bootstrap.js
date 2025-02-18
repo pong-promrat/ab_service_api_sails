@@ -10,6 +10,7 @@
  */
 
 const AB = require("@digiserve/ab-utils");
+const NginxLogger = require("../api/lib/nginxLogger.js");
 const ReqAB = AB.reqApi({}, {}, {});
 ReqAB.jobID = "api_bootstrap_loader";
 
@@ -84,4 +85,9 @@ module.exports.bootstrap = async function (done) {
    //    console.log("::::: uncaughtException :::::");
    //    console.log(reason);
    // });
+
+   // NOTE: Enable NGINX logging only on the production server.
+   if (process.env.ENABLE_NGINX_LOGGING) {
+      NginxLogger.start();
+   }
 };

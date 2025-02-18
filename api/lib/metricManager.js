@@ -1,6 +1,7 @@
 const prometheus_client = require("prom-client");
 
 const SOCKET_PAYLOAD_METRIC_NAME = "socket_payload_size";
+const NGINX_METRIC_NAME = "nginx_body_size";
 
 module.exports = class MetricManager {
    static logSocketPayload({ event, data }) {
@@ -15,6 +16,17 @@ module.exports = class MetricManager {
       );
    }
 
+   static logNginxBody({ path, size }) {
+      const logger = this._NginxLogger;
+
+      logger.observe(
+         {
+            path,
+         },
+         size
+      );
+   }
+
    static async getMetrics() {
       return await prometheus_client.register.metrics();
    }
@@ -23,8 +35,8 @@ module.exports = class MetricManager {
       if (this._resetInterval) clearInterval(this._resetInterval);
 
       this._resetInterval = setInterval(() => {
-         const logger = this._SocketPayloadLogger;
-         logger.reset();
+         this._SocketPayloadLogger.reset();
+         this._NginxLogger.reset();
       }, seconds * 1000);
    }
 
@@ -54,5 +66,17 @@ module.exports = class MetricManager {
       }
 
       return this.__socketPayloadLogger;
+   }
+
+   static get _NginxLogger() {
+      if (this.__nginxLogger == null) {
+         this.__nginxLogger = new prometheus_client.Summary({
+            name: NGINX_METRIC_NAME,
+            help: "NGINX sent body size",
+            labelNames: ["path"],
+         });
+      }
+
+      return this.__nginxLogger;
    }
 };
