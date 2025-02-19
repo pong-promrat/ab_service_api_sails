@@ -20,7 +20,7 @@
  */
 var inputParams = {
    objID: { string: { uuid: true }, required: true },
-   ID: { string: { uuid: true }, required: true },
+   ID: { string: true, required: true }, // Netsuite doesn't use GUIDs
    /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
    /*                -> NOTE: put .string  before .required                    */
    /*    "param": { required: true } // NOTE: param Joi.any().required();      */
