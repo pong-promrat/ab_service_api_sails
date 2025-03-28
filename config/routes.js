@@ -148,6 +148,7 @@ module.exports.routes = {
    "post /process/inbox/meta": "process_manager/inbox-meta",
    "post /process/external": "process_manager/external",
    "put /process/reset/:taskID": "process_manager/reset",
+   "post /process/userform/:processID/:taskID": "process_manager/user-form",
 
    // Process Trigger Timer
    "put /process/timer/:ID/start": "process_manager/timer-start",
