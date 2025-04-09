@@ -24,7 +24,7 @@ module.exports = async function (req, res) {
       valuesToCheck[p] = req.param(p);
    });
    if (
-      !(req.ab.validUser(/* false */)) ||
+      // !(req.ab.validUser(/* false */)) ||
       !req.ab.validateParameters(inputParams, true, valuesToCheck)
    ) {
       // an error message is automatically returned to the client
@@ -69,7 +69,9 @@ module.exports = async function (req, res) {
    // these settings come from the Application definitions, so we borrow the
    // timestamp from our definitions as the settings here.
 
-   let tsConfigUser = new Date(req.ab.user.updated_at).getTime();
+   let tsConfigUser = req.ab.user?.updated_at
+      ? new Date(req.ab.user.updated_at).getTime()
+      : undefined;
    // {timestamp}
    // The user setting wont change until a new .updated_at is set.
 

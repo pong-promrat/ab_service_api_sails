@@ -28,7 +28,7 @@ module.exports = function (req, res) {
    // verify your inputs are correct:
    // Handle the case where ?v=unknown (requested before login)
    const v = req.query.v;
-   if (v === "unknown" || !(req.ab.validUser(/* false */))) {
+   if (v === "unknown" || !req.ab.validUser(false)) {
       res.set("Content-Type", "text/javascript");
       res.set("Cache-Control", "max-age=31536000"); // Cache for 1 year
       res.send(`window.definitions=[]`);
