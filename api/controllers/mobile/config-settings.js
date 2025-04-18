@@ -11,7 +11,7 @@ var inputParams = {
    appID: { string: true, required: true },
 };
 
-module.exports = function (req, res) {
+module.exports = function(req, res) {
    // Package the Find Request and pass it off to the service
 
    req.ab.log(`mobile::config-settings`);
@@ -20,13 +20,13 @@ module.exports = function (req, res) {
    // false : prevents an auto error response if detected. (default: true)
    // valuesToCheck: {obj} a specified subset of the input values to validate.
    // Handle the case where ?v=unknown (requested before login)
-   const v = req.query.v;
-   if (v === "unknown") {
-      res.set("Content-Type", "text/javascript");
-      res.set("Cache-Control", "max-age=31536000"); // Cache for 1 year
-      res.send(`window.definitions=[]`);
-      return;
-   }
+   // const v = req.query.v;
+   // if (v === "unknown") {
+   //    res.set("Content-Type", "text/javascript");
+   //    res.set("Cache-Control", "max-age=31536000"); // Cache for 1 year
+   //    res.send(`window.definitions=[]`);
+   //    return;
+   // }
 
    // Validate input parameters
    const validationParams = Object.keys(inputParams);
@@ -35,7 +35,7 @@ module.exports = function (req, res) {
       valuesToCheck[p] = req.query[p] || req.params[p]; // Check both query and URL params
    });
    if (
-      !(req.ab.validUser(/* false */)) ||
+      // !(req.ab.validUser(/* false */)) ||
       !req.ab.validateParameters(inputParams, true, valuesToCheck)
    ) {
       // an error message is automatically returned to the client
