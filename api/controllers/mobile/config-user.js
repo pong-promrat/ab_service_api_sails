@@ -31,7 +31,7 @@ module.exports = function (req, res) {
    if (v === "unknown" || !req.ab.validUser(false)) {
       res.set("Content-Type", "text/javascript");
       res.set("Cache-Control", "max-age=31536000"); // Cache for 1 year
-      res.send(`window.definitions=[]`);
+      res.send("window.__ab_definitions={definitions: []}");
       return;
    }
 
