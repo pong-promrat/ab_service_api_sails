@@ -77,11 +77,16 @@ module.exports = async function (req, res) {
          if (keyColumnNames.length > 0) {
             const where = { glue: "and", rules: [] };
             keyColumnNames.forEach((colName) => {
-               const rule = dataRecord[colName] != null ? "=" : "IS NULL";
-               const value =
-                  dataRecord[colName] != null
-                     ? `'${dataRecord[colName]}'`
-                     : null;
+               let value = dataRecord[colName];
+
+               // If the value is an object with a single key, use that key's value
+               if (typeof value === "object" && Object.keys(value)[0] != null) {
+                  value = value[Object.keys(value)[0]];
+               }
+
+               value = value != null ? `'${value}'` : null;
+
+               const rule = value != null ? "=" : "IS NULL";
 
                where.rules.push({
                   key: `\`${colName}\``,
