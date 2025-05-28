@@ -103,17 +103,17 @@ module.exports = async function (req, res) {
             ).data.forEach((row) => {
                rowIDs.push(row.id);
             });
+         }
 
-            try {
-               // newRecord: {hash}
-               //   .id : {int} the client side id of an entry they are trying to create
-               //   .data : {json} the key=>value hash of the new entry.
-               allResults[newRecord.id] = (
-                  await submitJob(req, objectID, newRecord.data, rowIDs)
-               )[0];
-            } catch (err) {
-               allErrors[newRecord.id] = err;
-            }
+         try {
+            // newRecord: {hash}
+            //   .id : {int} the client side id of an entry they are trying to create
+            //   .data : {json} the key=>value hash of the new entry.
+            allResults[newRecord.id] = (
+               await submitJob(req, objectID, newRecord.data, rowIDs)
+            )[0];
+         } catch (err) {
+            allErrors[newRecord.id] = err;
          }
 
          return Promise.resolve();
