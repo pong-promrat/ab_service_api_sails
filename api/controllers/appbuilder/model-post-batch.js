@@ -21,6 +21,7 @@
 var inputParams = {
    objID: { string: { uuid: true }, required: true },
    batch: { array: true, required: true },
+   keyColumnNames: { array: true, required: false, optional: true },
    /*    "email": { string:{ email: { allowUnicode: true }}, required:true }   */
    /*                -> NOTE: put .string  before .required                    */
    /*    "param": { required: true } // NOTE: param Joi.any().required();      */
@@ -29,7 +30,7 @@ var inputParams = {
 const BroadcastManager = require("../../lib/broadcastManager");
 
 // make sure our BasePath is created:
-module.exports = function (req, res) {
+module.exports = async function (req, res) {
    // Package the Find Request and pass it off to the service
 
    req.ab.log(`appbuilder::model-post-batch`);
@@ -61,28 +62,66 @@ module.exports = function (req, res) {
 
    var objectID = req.ab.param("objID");
    var batch = req.ab.param("batch");
+   const keyColumnNames = req.ab.param("keyColumnNames") ?? [];
 
    var allResults = {};
    var allErrors = {};
 
-   var allCreates = [];
+   const upsertTasks = [];
    batch.forEach((newRecord) => {
-      // newRecord: {hash}
-      //   .id : {int} the client side id of an entry they are trying to create
-      //   .data : {json} the key=>value hash of the new entry.
+      const task = async () => {
+         const dataRecord = newRecord.data;
+         let rowIDs = [];
 
-      allCreates.push(
-         submitJob(req, objectID, newRecord.data)
-            .then((result) => {
-               allResults[newRecord.id] = result;
-            })
-            .catch((err) => {
-               allErrors[newRecord.id] = err;
-            })
-      );
+         // If Key field ids are specified, then we are fetching and updating it.
+         if (keyColumnNames.length > 0) {
+            const where = { glue: "and", rules: [] };
+            keyColumnNames.forEach((colName) => {
+               let value = dataRecord[colName];
+
+               // If the value is an object with a single key, use that key's value
+               if (typeof value === "object" && Object.keys(value)[0] != null) {
+                  value = value[Object.keys(value)[0]];
+               }
+
+               value = value != null ? `'${value}'` : null;
+
+               const rule = value != null ? "=" : "IS NULL";
+
+               where.rules.push({
+                  key: `\`${colName}\``,
+                  rule,
+                  value,
+               });
+            });
+
+            (
+               await req.ab.serviceRequest("appbuilder.model-get", {
+                  objectID,
+                  cond: { where, populate: false },
+               })
+            ).data.forEach((row) => {
+               rowIDs.push(row.id);
+            });
+         }
+
+         try {
+            // newRecord: {hash}
+            //   .id : {int} the client side id of an entry they are trying to create
+            //   .data : {json} the key=>value hash of the new entry.
+            allResults[newRecord.id] = (
+               await submitJob(req, objectID, newRecord.data, rowIDs)
+            )[0];
+         } catch (err) {
+            allErrors[newRecord.id] = err;
+         }
+
+         return Promise.resolve();
+      };
+      upsertTasks.push(task());
    });
 
-   Promise.all(allCreates).then(() => {
+   Promise.all(upsertTasks).then(() => {
       BroadcastManager.unregister(req);
       res.ab.success({
          data: allResults,
@@ -91,35 +130,47 @@ module.exports = function (req, res) {
    });
 };
 
-function submitJob(req, objectID, values) {
-   return new Promise((resolve, reject) => {
-      // create a new job for the service
-      // start with our expected required inputs
-      let jobData = {
-         objectID,
-         values,
-         // NOTE: disable to broadcast slate.update because it spend long time to process. It might cause to socket timeout.
-         disableStale: true,
-         // relocate the rest of the params as .values
-      };
+function submitJob(req, objectID, values, IDs = []) {
+   const tasks = [];
 
-      req.ab.serviceRequest(
-         "appbuilder.model-post",
-         jobData,
-         {
-            // NOTE: When there are a lot of inserting row, then It will take more time to response.
-            // Set .longRequest to avoid timeout error.
-            longRequest: true,
-         },
-         (err, newItem) => {
-            if (err) {
-               req.ab.log("api_sails:model-post-batch:error:", err);
-               reject(err);
-               return;
-            }
+   // create a new job for the service
+   // start with our expected required inputs
+   const jobData = {
+      objectID,
+      values,
+      // relocate the rest of the params as .values
+   };
 
-            resolve(newItem);
-         }
+   if (jobData.ID) {
+      // NOTE: disable to broadcast slate.update because it spend long time to process. It might cause to socket timeout.
+      jobData.disableStale = true;
+   }
+
+   do {
+      jobData.ID = IDs?.pop();
+      tasks.push(
+         new Promise((resolve, reject) => {
+            req.ab.serviceRequest(
+               jobData.ID ? "appbuilder.model-update" : "appbuilder.model-post",
+               jobData,
+               {
+                  // NOTE: When there are a lot of inserting row, then It will take more time to response.
+                  // Set .longRequest to avoid timeout error.
+                  longRequest: true,
+               },
+               (err, newItem) => {
+                  if (err) {
+                     req.ab.log("api_sails:model-post-batch:error:", err);
+                     reject(err);
+                     return;
+                  }
+
+                  resolve(newItem);
+               }
+            );
+         })
       );
-   });
+   } while (IDs.length > 0);
+
+   return Promise.all(tasks);
 }

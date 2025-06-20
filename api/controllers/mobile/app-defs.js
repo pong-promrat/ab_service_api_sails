@@ -16,10 +16,10 @@ module.exports = function (req, res) {
 
    // Handle the case where ?v=unknown (requested before login)
    const v = req.query.v;
-   if (v === "unknown") {
+   if (v === "unknown" || !req.ab.validUser(false)) {
       res.set("Content-Type", "text/javascript");
       res.set("Cache-Control", "max-age=31536000"); // Cache for 1 year
-      res.send(`window.definitions=[]`);
+      res.send(`window.__ab_definitions={definitions: []}`);
       return;
    }
 
@@ -31,7 +31,7 @@ module.exports = function (req, res) {
    });
 
    if (
-      !req.ab.validUser() ||
+      // !req.ab.validUser() ||
       !req.ab.validateParameters(inputParams, true, valuesToCheck)
    ) {
       return; // `validateParameters` automatically handles errors
