@@ -6,6 +6,7 @@
  */
 const async = require("async");
 const Cache = require("../lib/cacheManager");
+const http = require("http");
 const path = require("node:path");
 
 const { version } = require(path.join(process.cwd(), "package.json"));
@@ -562,7 +563,16 @@ module.exports = {
          }
       }
 
+      let webVersion = new Date().getTime();
+      allLookups.push(
+         lookupWebVersion().then((version) => {
+            if (version) webVersion = version.replace(/[^a-zA-Z0-9 ]/g, "");
+         })
+      );
+
       let configUserRealData = req.ab.isSwitcherood() ? req.ab.userReal : 0;
+
+      await Promise.all(allLookups);
 
       // @TODO: we still haven't setup a way to assign Plugins to Roles.
       // So for now we are manually adding ABDesigner.js.
@@ -575,7 +585,9 @@ module.exports = {
       ];
       let roles = req.ab.user?.SITE_ROLE ?? [];
       if (roles.filter((r) => builderRoles.indexOf(r.uuid) > -1).length > 0) {
-         pluginList.push("/assets/tenant/default/ABDesigner.js");
+         pluginList.push(
+            `/assets/tenant/default/ABDesigner.js?v=${webVersion}`
+         );
       }
 
       const hrPluginTenants = [
@@ -586,7 +598,7 @@ module.exports = {
 
       if (hrPluginTenants.includes(req.ab.tenantID)) {
          console.log("Loading HR Teams Plugin");
-         pluginList.push(`/assets/tenant/default/HRTeams.js`);
+         pluginList.push(`/assets/tenant/default/HRTeams.js?v=${webVersion}`);
       }
 
       if (pluginList.length == 0) {
@@ -594,8 +606,6 @@ module.exports = {
       } else {
          pluginList = `"${pluginList.join('","')}"`;
       }
-
-      await Promise.all(allLookups);
 
       res.type("text/javascript");
       res.view("web_preloader.ejs", {
@@ -709,4 +719,19 @@ async function lookupMyAppVersion(req) {
       );
    });
    return version;
+}
+
+async function lookupWebVersion() {
+   return new Promise((resolve, reject) => {
+      http
+         .get("http://web:80/version", (res) => {
+            res.on("readable", () => {
+               const version = res.read().toString();
+               resolve(version);
+            });
+         })
+         .on("error", function (e) {
+            reject(e);
+         });
+   });
 }
