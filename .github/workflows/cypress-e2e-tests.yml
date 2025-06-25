@@ -45,14 +45,14 @@ jobs:
         if: false
         uses: ifaxity/wait-on-action@v1.1.0
         with:
-          resource: http://localhost:80
+          resource: http://localhost:8080
           timeout: 300000
 
       - name: Install wait-on module
         run: npm install -g wait-on
 
       - name: Run wait-on
-        run: wait-on http://127.0.0.1:80
+        run: wait-on http://127.0.0.1:8080
 
       - name: Run Cypress Tests
         run: npm run test:e2e:app -- --browser chrome
