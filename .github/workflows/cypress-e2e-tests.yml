@@ -42,11 +42,14 @@ jobs:
 
       - name: Wait for AB
         # Skipping the wait step. Cypress has a bit of wait time built in. It might be enough.
-        if: true
+        if: false
         uses: ifaxity/wait-on-action@v1.1.0
         with:
           resource: http://localhost:80
           timeout: 300000
+
+      - run: npm install wait-on
+      - run: wait-on http://localhost:80
 
       - name: Run Cypress Tests
         run: npm run test:e2e:app -- --browser chrome
