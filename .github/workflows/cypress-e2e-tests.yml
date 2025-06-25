@@ -48,8 +48,11 @@ jobs:
           resource: http://localhost:80
           timeout: 300000
 
-      - run: npm install wait-on
-      - run: wait-on http://localhost:80
+      - name: Install wait-on module
+        run: npm install wait-on
+
+      - name: Run wait-on
+        run: wait-on http://localhost:80
 
       - name: Run Cypress Tests
         run: npm run test:e2e:app -- --browser chrome
