@@ -52,7 +52,7 @@ jobs:
         run: npm install -g wait-on
 
       - name: Run wait-on
-        run: wait-on http://localhost:80
+        run: wait-on http://127.0.0.1:80
 
       - name: Run Cypress Tests
         run: npm run test:e2e:app -- --browser chrome
