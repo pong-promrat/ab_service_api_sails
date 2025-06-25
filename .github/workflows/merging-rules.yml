@@ -13,7 +13,7 @@ permissions:
 jobs:
    call-e2e-tests:
       name: E2E Tests
-      uses: CruGlobal/.github/.github/workflows/cypress-e2e-tests.yml@main
+      uses: ./.github/workflows/cypress-e2e-tests.yml
    call-dependabot-merge:
       name: Dependabot
       needs: call-e2e-tests
