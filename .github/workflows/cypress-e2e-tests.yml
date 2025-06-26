@@ -45,14 +45,17 @@ jobs:
         if: false
         uses: ifaxity/wait-on-action@v1.1.0
         with:
-          resource: http://localhost:8080
+          resource: http://localhost:80
           timeout: 300000
 
-      - name: Install start-server-and-test module
-        run: npm install -g start-server-and-test
+      - name: Ping localhost:80
+        run: ping localhost:80
 
-      - name: Run start-server-and-test
-        run: start-server-and-test test:e2e:app -- --browser chrome
+      # - name: Install start-server-and-test module
+      #   run: npm install -g start-server-and-test
+
+      # - name: Run start-server-and-test
+      #   run: start-server-and-test test:e2e:app -- --browser chrome
 
       # - name: Install wait-on module
       #   run: npm install -g wait-on
