@@ -36,7 +36,7 @@ jobs:
           path: AppBuilder/test/e2e/cypress/e2e/kitchensink_app
 
       - name: Run AppBuilder
-        run: ./UP.sh
+        run: docker stack deploy -c docker-compose.yml -c docker-compose.override.yml ab
         working-directory: ./AppBuilder
 
       - run: npm install pm2@latest -g
