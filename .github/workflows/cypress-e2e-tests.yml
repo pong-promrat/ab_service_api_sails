@@ -49,7 +49,7 @@ jobs:
           timeout: 300000
 
       - name: Ping localhost:80
-        run: ping localhost:80
+        run: nmap -p 80 localhost
 
       # - name: Install start-server-and-test module
       #   run: npm install -g start-server-and-test
