@@ -48,15 +48,21 @@ jobs:
           resource: http://localhost:8080
           timeout: 300000
 
-      - name: Install wait-on module
-        run: npm install -g wait-on
+      - name: Install start-server-and-test module
+        run: npm install -g start-server-and-test
 
-      - name: Run wait-on
-        run: npm run test:boot & wait-on http://localhost:80
+      - name: Run start-server-and-test
+        run: start-server-and-test test:e2e:app -- --browser chrome
 
-      - name: Run Cypress Tests
-        run: npm run test:e2e:app -- --browser chrome
-        working-directory: ./AppBuilder
+      # - name: Install wait-on module
+      #   run: npm install -g wait-on
+
+      # - name: Run wait-on
+      #   run: npm run test:boot & wait-on http://localhost:80
+
+      # - name: Run Cypress Tests
+      #  run: npm run test:e2e:app -- --browser chrome
+      #  working-directory: ./AppBuilder
 
       - name: Save Screenshots 
         uses: actions/upload-artifact@v4
