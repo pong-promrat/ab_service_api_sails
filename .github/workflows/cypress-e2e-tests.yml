@@ -35,6 +35,10 @@ jobs:
           repository: CruGlobal/kitchensink_app
           path: AppBuilder/test/e2e/cypress/e2e/kitchensink_app
 
+      - name: Run AppBuilder
+        run: set -a; . ./.env; set +a && docker stack deploy -c docker-compose.yml -c docker-compose.override.yml -c ./test/setup/test-compose.yml ab -d
+        working-directory: ./AppBuilder
+
       - run: npm install pm2@latest -g
       - name: Save Logs
         run: pm2 start ./logs.js -- --toFile logs/ABServices.log
@@ -48,8 +52,19 @@ jobs:
           resource: http://localhost:80
           timeout: 300000
 
-      - run: npm install wait-on
-      - run: wait-on http://localhost:80
+      # - name: Install start-server-and-test module
+      #   run: npm install -g start-server-and-test
+
+      # - name: Run start-server-and-test
+      #   run: start-server-and-test test:e2e:app -- --browser chrome
+
+      - name: Install wait-on module
+        run: npm install wait-on -g
+        working-directory: ./AppBuilder
+
+      - name: Run wait-on
+        run: wait-on http://localhost:80
+        working-directory: ./AppBuilder
 
       - name: Run Cypress Tests
         run: npm run test:e2e:app -- --browser chrome
