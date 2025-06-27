@@ -59,7 +59,7 @@ jobs:
       #   run: start-server-and-test test:e2e:app -- --browser chrome
 
       - name: Install wait-on module
-        run: npm install wait-on
+        run: npm install wait-on -g
         working-directory: ./AppBuilder
 
       - name: Run wait-on
