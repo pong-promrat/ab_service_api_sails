@@ -591,7 +591,7 @@ module.exports = {
       }
 
       const hrPluginTenants = [
-         // "admin", // <-- For local testing only
+         "admin", // <-- For local testing only
          "1ad43361-d1da-47ac-9ee4-5e5bc6af512c", // ldhr.hrupdate.org
          "1729957e-d3ba-4cd4-901c-aa17982b9766", // ldhr-test.hrupdate.org
       ];
@@ -726,7 +726,7 @@ async function lookupWebVersion() {
       http
          .get("http://web:80/version", (res) => {
             res.on("readable", () => {
-               const version = res.read().toString();
+               const version = res.read()?.toString();
                resolve(version);
             });
          })
