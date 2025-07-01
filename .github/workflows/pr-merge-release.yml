@@ -46,3 +46,5 @@ jobs:
       type: ${{ needs.call-get-label.outputs.label }}
       version: ${{ needs.call-bump-version.outputs.new_version }}
       app_id: ${{ vars.GS_DEV_APP_ID }}
+    secrets:
+      app_secret: ${{ secrets.GS_DEV_APP_PK }}
