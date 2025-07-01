@@ -35,7 +35,7 @@ jobs:
     uses: CruGlobal/.github/.github/workflows/docker-build.yml@main
     needs: [call-bump-version]
     secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     with:
       tags: master,develop,${{ needs.call-bump-version.outputs.new_version }}
