@@ -79,7 +79,7 @@ module.exports = function (req, res) {
 
          // NOTE: for streaming, do not send a callback
          req.ab.log(
-            `appbuilder.csv-export: username: [${req.user?.username}] - query to DB: [${results.SQL}]`
+            `appbuilder.csv-export: username: [${req.ab.user?.username}] - query to DB: [${results.SQL}]`
          );
          let query = connection.query(results.SQL);
 
