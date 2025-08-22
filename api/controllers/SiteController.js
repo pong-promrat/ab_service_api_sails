@@ -597,8 +597,14 @@ module.exports = {
       ];
 
       if (hrPluginTenants.includes(req.ab.tenantID)) {
+         const hrTeamVersion = (await lookupHrTeamVersion()).replace(
+            /[^a-zA-Z0-9 ]/g,
+            ""
+         );
          console.log("Loading HR Teams Plugin");
-         pluginList.push(`/assets/tenant/default/HRTeams.js?v=${webVersion}`);
+         pluginList.push(
+            `/assets/tenant/default/HRTeams.js?v=${hrTeamVersion}`
+         );
       }
 
       if (pluginList.length == 0) {
@@ -725,6 +731,21 @@ async function lookupWebVersion() {
    return new Promise((resolve, reject) => {
       http
          .get("http://web:80/version", (res) => {
+            res.on("readable", () => {
+               const version = res.read()?.toString();
+               resolve(version);
+            });
+         })
+         .on("error", function (e) {
+            reject(e);
+         });
+   });
+}
+
+async function lookupHrTeamVersion() {
+   return new Promise((resolve, reject) => {
+      http
+         .get("http://web:80/version_hrteam", (res) => {
             res.on("readable", () => {
                const version = res.read()?.toString();
                resolve(version);
